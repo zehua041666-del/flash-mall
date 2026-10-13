@@ -1,0 +1,59 @@
+services:
+  mysql:
+    image: mysql:8.0.36
+    container_name: flash-mall-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      # 首次启动自动建库，省得手动 CREATE DATABASE
+      MYSQL_DATABASE: flash_mall
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+08:00
+      - --slow-query-log=1
+      - --long-query-time=1
+    # healthcheck 让 compose ps 能直观看到"能不能用"，
+    # 后续加 Nacos/RocketMQ 时也可用 depends_on: condition: service_healthy 控制启动顺序
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - flash-mall-net
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: flash-mall-redis
+    restart: unless-stopped
+    # appendonly yes：W5 购物车用 Redis Hash 存，重启不丢方便调试
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "redis123"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - flash-mall-net
+
+# 未来追加：nacos / rocketmq / elasticsearch / minio 往 services 里加，复用 flash-mall-net
+
+volumes:
+  mysql-data:
+  redis-data:
+
+# 显式命名网络，将来多 compose 文件追加服务时网络名稳定
+networks:
+  flash-mall-net:
+    name: flash-mall-net
