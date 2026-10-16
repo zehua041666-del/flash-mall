@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flashmall</groupId>
+        <artifactId>flash-mall</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>flash-mall-app</artifactId>
+
+    <dependencies>
+        <!-- 依赖 user 模块，user 又依赖 common，传递依赖 -->
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-user</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- W2-3 长出 product / order 时，只在这里加依赖，common 不动 -->
+
+        <!-- Flyway 管数据库版本，启动时自动执行 db/migration 下的脚本 -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <!-- MySQL 8 需要额外加 flyway-mysql，只引 flyway-core 不认 MySQL -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
