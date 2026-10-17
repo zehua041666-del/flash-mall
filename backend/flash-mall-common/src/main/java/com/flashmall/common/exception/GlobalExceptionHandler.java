@@ -16,9 +16,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Result<Void> handleValid(MethodArgumentNotValidException e) {
-        String msg = e.getBindingResult().getFieldError() == null
-                ? "参数校验失败"
-                : e.getBindingResult().getFieldError().getDefaultMessage();
+        var fieldError = e.getBindingResult().getFieldError();
+        String msg = fieldError == null ? "参数校验失败" : fieldError.getDefaultMessage();
         return Result.fail(400, msg);
     }
 
