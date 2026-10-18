@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # 把代码拉到 GitHub 的机器上
+      - uses: actions/checkout@v4
+
+      # 装 JDK 17
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      # 编译后端（cd backend 因为父 POM 在 backend/ 下）
+      - name: Build backend
+        run: |
+          cd backend
+          mvn -B compile
