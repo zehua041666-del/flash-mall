@@ -13,6 +13,11 @@
     <artifactId>flash-mall-user</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
         <!-- 依赖 common，用它的 Result / 异常处理 -->
         <dependency>
             <groupId>com.flashmall</groupId>

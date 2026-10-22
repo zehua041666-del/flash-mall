@@ -13,6 +13,8 @@
         <module>flash-mall-common</module>
         <module>flash-mall-user</module>
         <module>flash-mall-app</module>
+        <module>flash-mall-cart</module>
+        <module>flash-mall-product</module>
     </modules>
 
     <properties>
@@ -27,6 +29,7 @@
         <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
         <!-- Boot 3 必须用 spring-boot3-starter，普通版会因 mybatis-spring 版本对不上启动失败 -->
         <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <jjwt.version>0.12.6</jjwt.version>
     </properties>
 
     <dependencyManagement>
@@ -57,6 +60,21 @@
                 <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
                 <version>${mybatis-plus.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>            
         </dependencies>
     </dependencyManagement>
 
