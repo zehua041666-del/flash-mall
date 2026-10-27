@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>新国辩计时器</title>
+<style>
+  * { box-sizing: border-box; }
+
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --text: #111827;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --pro: #16a34a;
+    --con: #2563eb;
+    --warn: #dc2626;
+    --accent: var(--pro);
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(17, 24, 39, .04), 0 8px 24px rgba(17, 24, 39, .06);
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body[data-side="pro"] { --accent: var(--pro); }
+  body[data-side="con"] { --accent: var(--con); }
+
+  .app {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .app:fullscreen {
+    max-width: none;
+    background: var(--bg);
+    padding: 28px;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 20px;
+    box-shadow: var(--shadow);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: .02em;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    transition: background .2s;
+  }
+
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .icon-btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 13px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color .15s, border-color .15s, background .15s;
+  }
+
+  .icon-btn:hover {
+    color: var(--text);
+    border-color: #cbd5e1;
+    background: #fafbfc;
+  }
+
+  .layout {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: 16px;
+    min-height: 0;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  /* ---------- 流程列表 ---------- */
+
+  .stage-panel {
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .12em;
+    color: var(--muted);
+    padding: 0 8px 10px;
+  }
+
+  .stage-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    overflow-y: auto;
+  }
+
+  .stage-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    text-align: left;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 10px;
+    padding: 9px 10px;
+    cursor: pointer;
+    font: inherit;
+    color: var(--text);
+    transition: background .15s, border-color .15s;
+  }
+
+  .stage-item:hover { background: #f8fafc; }
+
+  .stage-item .idx {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #f1f5f9;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    display: grid;
+    place-items: center;
+  }
+
+  .stage-item .info { flex: 1; min-width: 0; }
+
+  .stage-item .s-name {
+    display: block;
+    font-size: 13.5px;
+    line-height: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .stage-item .s-time {
+    display: block;
+    font-size: 11px;
+    line-height: 16px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stage-item.done { opacity: .45; }
+  .stage-item.done .idx { background: #e8f5ee; color: var(--pro); }
+
+  .stage-item.active {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 7%, white);
+  }
+
+  .stage-item.active .idx { background: var(--accent); color: #fff; }
+  .stage-item.active .s-name { font-weight: 600; }
+  .stage-item.active .s-time { color: var(--accent); }
+
+  /* ---------- 计时区 ---------- */
+
+  .timer-panel {
+    padding: 28px 32px 22px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .timer-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--accent);
+    transition: background .2s;
+  }
+
+  .stage-head { text-align: center; }
+
+  .side-tag {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .06em;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, white);
+    border-radius: 999px;
+    padding: 3px 12px;
+    margin-bottom: 10px;
+    transition: color .2s, background .2s;
+  }
+
+  .side-tag.both {
+    color: var(--muted);
+    background: #f1f5f9;
+  }
+
+  .stage-name {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: .01em;
+  }
+
+  .stage-note {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    color: var(--muted);
+    min-height: 18px;
+  }
+
+  .timer {
+    font-size: clamp(76px, 14vw, 168px);
+    line-height: .95;
+    font-weight: 600;
+    letter-spacing: .01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    transition: color .2s;
+    user-select: none;
+  }
+
+  .timer.warn { color: var(--warn); animation: pulse 1s ease-in-out infinite; }
+  .timer.over { color: var(--warn); opacity: .55; animation: none; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .55; }
+  }
+
+  .progress {
+    width: 100%;
+    max-width: 640px;
+    height: 6px;
+    border-radius: 999px;
+    background: #eef1f4;
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 100%;
+    border-radius: 999px;
+    background: var(--accent);
+    transition: width .15s linear, background .2s;
+  }
+
+  .dual {
+    width: 100%;
+    max-width: 560px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .dual-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    cursor: pointer;
+    font: inherit;
+    color: var(--text);
+    transition: border-color .15s, background .15s, opacity .15s;
+  }
+
+  .dual-card:hover { border-color: #cbd5e1; }
+  .dual-card .dual-label { font-size: 12px; color: var(--muted); }
+  .dual-card .dual-time {
+    font-size: 26px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.2;
+  }
+
+  .dual-card[data-side="pro"] .dual-label { color: var(--pro); }
+  .dual-card[data-side="con"] .dual-label { color: var(--con); }
+
+  .dual-card.active[data-side="pro"] {
+    border-color: var(--pro);
+    background: color-mix(in srgb, var(--pro) 6%, white);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--pro) 12%, transparent);
+  }
+
+  .dual-card.active[data-side="con"] {
+    border-color: var(--con);
+    background: color-mix(in srgb, var(--con) 6%, white);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--con) 12%, transparent);
+  }
+
+  .dual-card.idle { opacity: .55; }
+
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .btn {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    padding: 11px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, transform .05s;
+  }
+
+  .btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+  .btn:active { transform: translateY(1px); }
+
+  .btn.primary {
+    min-width: 140px;
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    padding: 13px 30px;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 28%, transparent);
+  }
+
+  .btn.primary:hover {
+    background: color-mix(in srgb, var(--accent) 88%, black);
+    border-color: color-mix(in srgb, var(--accent) 88%, black);
+  }
+
+  .hint {
+    margin: 0;
+    font-size: 12px;
+    color: #9ca3af;
+    text-align: center;
+    line-height: 20px;
+  }
+
+  /* ---------- 设置弹窗 ---------- */
+
+  .modal[hidden] { display: none; }
+
+  .modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 24, 39, .45);
+    display: grid;
+    place-items: center;
+    padding: 20px;
+    z-index: 50;
+  }
+
+  .modal-card {
+    width: min(520px, 100%);
+    max-height: 84vh;
+    background: var(--surface);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(17, 24, 39, .24);
+  }
+
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-head h2 { margin: 0; font-size: 16px; font-weight: 600; }
+
+  .close-btn {
+    border: none;
+    background: transparent;
+    font-size: 22px;
+    line-height: 1;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  .close-btn:hover { background: #f1f5f9; color: var(--text); }
+
+  .modal-body {
+    padding: 16px 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .setting-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .setting-row .r-name { flex: 1; font-size: 13.5px; }
+  .setting-row .r-side {
+    font-size: 11px;
+    color: var(--muted);
+    background: #f1f5f9;
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+
+  .setting-row input {
+    width: 84px;
+    padding: 7px 10px;
+    font: inherit;
+    font-size: 13.5px;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    outline: none;
+  }
+
+  .setting-row input:focus { border-color: var(--pro); }
+
+  .modal-foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 22px 18px;
+    border-top: 1px solid var(--border);
+  }
+
+  .modal-tip {
+    padding: 0 22px 4px;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 860px) {
+    .app { padding: 12px; }
+    .layout {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr;
+    }
+    .stage-panel { padding: 12px; }
+    .stage-list {
+      flex-direction: row;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 4px;
+    }
+    .stage-item {
+      flex: none;
+      width: 190px;
+      border: 1px solid var(--border);
+    }
+    .timer-panel { padding: 22px 16px 18px; }
+    .timer { font-size: clamp(64px, 20vw, 120px); }
+    .topbar { flex-wrap: wrap; padding: 12px 14px; }
+  }
+</style>
+</head>
+<body data-side="pro">
+  <div class="app" id="app">
+    <header class="topbar">
+      <div class="brand"><span class="dot"></span>新国辩 · 赛事计时器</div>
+      <div class="actions">
+        <button class="icon-btn" id="btnSettings" title="修改各环节时长">时长设置</button>
+        <button class="icon-btn" id="btnResetAll" title="回到第一个环节并清空所有计时">重置全部</button>
+        <button class="icon-btn" id="btnFullscreen" title="全屏（F）">全屏</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <aside class="panel stage-panel">
+        <div class="panel-title">比赛流程</div>
+        <ol class="stage-list" id="stageList"></ol>
+      </aside>
+
+      <section class="panel timer-panel">
+        <div class="stage-head">
+          <span class="side-tag" id="sideTag">正方</span>
+          <h1 class="stage-name" id="stageName">正方一辩立论</h1>
+          <p class="stage-note" id="stageNote"></p>
+        </div>
+
+        <div class="timer" id="timer">03:00</div>
+
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+
+        <div class="dual" id="dualPanel" hidden>
+          <button class="dual-card" data-side="pro" id="dualPro">
+            <span class="dual-label">正方</span>
+            <span class="dual-time" id="dualProTime">04:00</span>
+          </button>
+          <button class="dual-card" data-side="con" id="dualCon">
+            <span class="dual-label">反方</span>
+            <span class="dual-time" id="dualConTime">04:00</span>
+          </button>
+        </div>
+
+        <div class="controls">
+          <button class="btn primary" id="btnStart">开始</button>
+          <button class="btn" id="btnReset">重置本环节</button>
+          <button class="btn" id="btnPrev">上一环节</button>
+          <button class="btn" id="btnNext">下一环节</button>
+        </div>
+
+        <p class="hint">空格 开始 / 暂停　·　← → 切换环节　·　R 重置　·　Tab 交换发言方　·　F 全屏</p>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="settingsModal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>环节时长设置</h2>
+        <button class="close-btn" id="btnCloseModal" aria-label="关闭">×</button>
+      </div>
+      <div class="modal-body" id="settingsList"></div>
+      <p class="modal-tip">格式：分:秒，例如 3:00。自由辩论为单方时长。</p>
+      <div class="modal-foot">
+        <button class="btn" id="btnRestore">恢复默认</button>
+        <button class="btn primary" id="btnSave" style="min-width: 96px; font-size: 14px; padding: 11px 20px;">保存</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------------- 赛制（新国辩赛制） ---------------- */
+
+  const DEFAULT_STAGES = [
+    { name: '正方一辩立论', side: 'pro', seconds: 180, note: '' },
+    { name: '反方一辩立论', side: 'con', seconds: 180, note: '' },
+    { name: '反方二辩质询', side: 'con', seconds: 90, note: '质询方单方计时 · 被质询方享 15 秒保护' },
+    { name: '正方二辩质询', side: 'pro', seconds: 90, note: '质询方单方计时 · 被质询方享 15 秒保护' },
+    { name: '正方二辩小结', side: 'pro', seconds: 90, note: '' },
+    { name: '反方二辩小结', side: 'con', seconds: 90, note: '' },
+    { name: '自由辩论', side: 'both', seconds: 240, note: '双方各 4 分钟 · 点击或按 Tab 交换发言方' },
+    { name: '反方四辩结辩', side: 'con', seconds: 180, note: '' },
+    { name: '正方四辩结辩', side: 'pro', seconds: 180, note: '' }
+  ];
+
+  const STORAGE_KEY = 'debate-timer-durations';
+  const SIDE_TEXT = { pro: '正方', con: '反方', both: '双方' };
+  const SIDE_CLASS = { pro: 'pro', con: 'con' };
+
+  /* ---------------- DOM ---------------- */
+
+  const $ = (id) => document.getElementById(id);
+  const el = {
+    timer: $('timer'),
+    progressBar: $('progressBar'),
+    stageName: $('stageName'),
+    stageNote: $('stageNote'),
+    sideTag: $('sideTag'),
+    stageList: $('stageList'),
+    dualPanel: $('dualPanel'),
+    dualPro: $('dualPro'),
+    dualCon: $('dualCon'),
+    dualProTime: $('dualProTime'),
+    dualConTime: $('dualConTime'),
+    btnStart: $('btnStart'),
+    btnReset: $('btnReset'),
+    btnPrev: $('btnPrev'),
+    btnNext: $('btnNext'),
+    btnResetAll: $('btnResetAll'),
+    btnFullscreen: $('btnFullscreen'),
+    btnSettings: $('btnSettings'),
+    modal: $('settingsModal'),
+    settingsList: $('settingsList'),
+    btnCloseModal: $('btnCloseModal'),
+    btnRestore: $('btnRestore'),
+    btnSave: $('btnSave')
+  };
+
+  /* ---------------- 状态 ---------------- */
+
+  let stages = loadStages();
+  let index = 0;
+  let running = false;
+  let remaining = 0;          // 单方计时剩余毫秒
+  let timers = null;          // 自由辩论：{ pro, con }
+  let activeSide = 'pro';
+  let total = 0;
+  let rafId = null;
+  let lastTs = 0;
+  let tickMark = -1;
+  let audioCtx = null;
+
+  /* ---------------- 工具 ---------------- */
+
+  function fmt(ms) {
+    const sec = Math.max(0, Math.ceil(ms / 1000));
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  function parseTime(str) {
+    const raw = String(str).trim();
+    if (!raw) return null;
+    let m = 0, s = 0;
+    if (raw.includes(':')) {
+      const parts = raw.split(':');
+      if (parts.length !== 2) return null;
+      m = parseInt(parts[0], 10);
+      s = parseInt(parts[1], 10);
+    } else {
+      m = parseInt(raw, 10);
+    }
+    if (!Number.isFinite(m) || !Number.isFinite(s) || m < 0 || s < 0 || s > 59) return null;
+    const sec = m * 60 + s;
+    return sec > 0 && sec <= 3600 ? sec : null;
+  }
+
+  function loadStages() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) { saved = null; }
+    return DEFAULT_STAGES.map(function (st, i) {
+      const seconds = Array.isArray(saved) && Number(saved[i]) > 0 ? Number(saved[i]) : st.seconds;
+      return Object.assign({}, st, { seconds: seconds });
+    });
+  }
+
+  function saveDurations() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(stages.map(function (s) { return s.seconds; })));
+    } catch (e) { /* 忽略存储失败 */ }
+  }
+
+  /* ---------------- 音效 ---------------- */
+
+  function ensureAudio() {
+    if (audioCtx) return;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (Ctx) audioCtx = new Ctx();
+  }
+
+  function beep(freq, duration, volume) {
+    if (!audioCtx) return;
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    const now = audioCtx.currentTime;
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start(now);
+    osc.stop(now + duration + 0.02);
+  }
+
+  function alarm() {
+    if (!audioCtx) return;
+    [0, 260, 520].forEach(function (delay) {
+      setTimeout(function () { beep(880, 0.22, 0.18); }, delay);
+    });
+  }
+
+  function maybeTick(ms) {
+    if (!running || ms <= 0 || ms > 10000) return;
+    const sec = Math.ceil(ms / 1000);
+    if (sec !== tickMark) {
+      tickMark = sec;
+      beep(660, 0.06, 0.08);
+    }
+  }
+
+  /* ---------------- 渲染 ---------------- */
+
+  function currentStage() { return stages[index]; }
+
+  function render() {
+    const st = currentStage();
+    const shown = st.side === 'both' ? timers[activeSide] : remaining;
+
+    el.timer.textContent = fmt(shown);
+    el.timer.classList.toggle('warn', shown > 0 && shown <= 10000);
+    el.timer.classList.toggle('over', shown <= 0);
+
+    const ratio = total > 0 ? Math.max(0, Math.min(1, shown / total)) : 0;
+    el.progressBar.style.width = (ratio * 100) + '%';
+
+    el.stageName.textContent = st.name;
+    el.stageNote.textContent = (fmt(st.seconds * 1000) + '　' + (st.note || '')).trim();
+
+    const tagSide = st.side === 'both' ? activeSide : st.side;
+    el.sideTag.textContent = st.side === 'both' ? ('自由辩论 · ' + SIDE_TEXT[activeSide] + '发言') : SIDE_TEXT[st.side];
+    el.sideTag.classList.toggle('both', st.side === 'both');
+    el.sideTag.style.color = st.side === 'both' ? '' : '';
+    document.body.dataset.side = tagSide;
+
+    el.btnStart.textContent = running ? '暂停' : (shown === total ? '开始' : '继续');
+
+    el.dualPanel.hidden = st.side !== 'both';
+    if (st.side === 'both') {
+      el.dualProTime.textContent = fmt(timers.pro);
+      el.dualConTime.textContent = fmt(timers.con);
+      el.dualPro.classList.toggle('active', activeSide === 'pro');
+      el.dualCon.classList.toggle('active', activeSide === 'con');
+      el.dualPro.classList.toggle('idle', activeSide !== 'pro' || timers.pro <= 0);
+      el.dualCon.classList.toggle('idle', activeSide !== 'con' || timers.con <= 0);
+    }
+
+    renderStageList();
+  }
+
+  function renderStageList() {
+    const st = currentStage();
+    const items = el.stageList.children;
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      item.classList.toggle('active', i === index);
+      item.classList.toggle('done', i < index);
+      const timeEl = item.querySelector('.s-time');
+      if (timeEl) {
+        const stage = stages[i];
+        const sides = stage.side === 'both' ? '双方各 ' : '';
+        timeEl.textContent = sides + fmt(stage.seconds * 1000) + (i === index && stage.side === 'both' ? ' · ' + SIDE_TEXT[activeSide] : '');
+      }
+    }
+    if (st) el.stageList.dataset.side = st.side;
+  }
+
+  function buildStageList() {
+    el.stageList.innerHTML = '';
+    stages.forEach(function (st, i) {
+      const li = document.createElement('li');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'stage-item';
+      btn.dataset.index = String(i);
+      btn.innerHTML =
+        '<span class="idx">' + (i + 1) + '</span>' +
+        '<span class="info"><span class="s-name"></span><span class="s-time"></span></span>';
+      btn.querySelector('.s-name').textContent = st.name;
+      li.appendChild(btn);
+      el.stageList.appendChild(li);
+    });
+  }
+
+  /* ---------------- 计时核心 ---------------- */
+
+  function loadStage(newIndex) {
+    index = Math.max(0, Math.min(stages.length - 1, newIndex));
+    running = false;
+    cancelAnimationFrame(rafId);
+    tickMark = -1;
+
+    const st = currentStage();
+    total = st.seconds * 1000;
+    if (st.side === 'both') {
+      timers = { pro: total, con: total };
+      activeSide = 'pro';
+      remaining = timers.pro;
+    } else {
+      timers = null;
+      remaining = total;
+    }
+    render();
+  }
+
+  function toggleRun() {
+    ensureAudio();
+    const st = currentStage();
+    const shown = st.side === 'both' ? timers[activeSide] : remaining;
+    if (shown <= 0) return;
+
+    running = !running;
+    if (running) {
+      lastTs = performance.now();
+      tickMark = -1;
+      rafId = requestAnimationFrame(loop);
+    } else {
+      cancelAnimationFrame(rafId);
+    }
+    render();
+  }
+
+  function loop(ts) {
+    if (!running) return;
+    const dt = Math.max(0, Math.min(250, ts - lastTs));
+    lastTs = ts;
+
+    const st = currentStage();
+
+    if (st.side === 'both') {
+      const side = activeSide;
+      timers[side] = Math.max(0, timers[side] - dt);
+      remaining = timers[side];
+      maybeTick(timers[side]);
+
+      if (timers[side] <= 0) {
+        const other = side === 'pro' ? 'con' : 'pro';
+        if (timers[other] > 0) {
+          // 一方时间用尽，自动切到另一方继续
+          activeSide = other;
+          remaining = timers[other];
+          tickMark = -1;
+          beep(520, 0.18, 0.14);
+          lastTs = performance.now();
+          render();
+          rafId = requestAnimationFrame(loop);
+          return;
+        }
+        finish();
+        return;
+      }
+    } else {
+      remaining = Math.max(0, remaining - dt);
+      maybeTick(remaining);
+      if (remaining <= 0) {
+        finish();
+        return;
+      }
+    }
+
+    render();
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function finish() {
+    running = false;
+    cancelAnimationFrame(rafId);
+    alarm();
+    render();
+  }
+
+  function resetStage() {
+    loadStage(index);
+  }
+
+  function resetAll() {
+    loadStage(0);
+  }
+
+  function switchSide() {
+    const st = currentStage();
+    if (st.side !== 'both') return;
+    const other = activeSide === 'pro' ? 'con' : 'pro';
+    if (timers[other] <= 0) return;
+    activeSide = other;
+    remaining = timers[other];
+    tickMark = -1;
+    render();
+  }
+
+  function goPrev() { if (index > 0) loadStage(index - 1); }
+  function goNext() { if (index < stages.length - 1) loadStage(index + 1); }
+
+  /* ---------------- 设置 ---------------- */
+
+  function openSettings() {
+    el.settingsList.innerHTML = '';
+    stages.forEach(function (st, i) {
+      const row = document.createElement('div');
+      row.className = 'setting-row';
+      const name = document.createElement('span');
+      name.className = 'r-name';
+      name.textContent = st.name;
+      const side = document.createElement('span');
+      side.className = 'r-side';
+      side.textContent = SIDE_TEXT[st.side];
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.inputMode = 'numeric';
+      input.dataset.index = String(i);
+      input.value = fmt(st.seconds * 1000);
+      row.appendChild(name);
+      row.appendChild(side);
+      row.appendChild(input);
+      el.settingsList.appendChild(row);
+    });
+    el.modal.hidden = false;
+  }
+
+  function closeSettings() { el.modal.hidden = true; }
+
+  function saveSettings() {
+    const inputs = el.settingsList.querySelectorAll('input');
+    let changed = false;
+    inputs.forEach(function (input) {
+      const sec = parseTime(input.value);
+      const i = Number(input.dataset.index);
+      if (sec && stages[i].seconds !== sec) {
+        stages[i].seconds = sec;
+        changed = true;
+      }
+    });
+    if (changed) saveDurations();
+    closeSettings();
+    loadStage(index);
+  }
+
+  function restoreDefaults() {
+    stages = DEFAULT_STAGES.map(function (st) { return Object.assign({}, st); });
+    saveDurations();
+    openSettings();
+    loadStage(0);
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      if (el.appRoot) el.appRoot.requestFullscreen && el.appRoot.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  /* ---------------- 事件绑定 ---------------- */
+
+  el.appRoot = document.getElementById('app');
+
+  el.stageList.addEventListener('click', function (e) {
+    const btn = e.target.closest('.stage-item');
+    if (!btn) return;
+    const i = Number(btn.dataset.index);
+    if (i !== index) loadStage(i);
+  });
+
+  el.btnStart.addEventListener('click', toggleRun);
+  el.btnReset.addEventListener('click', resetStage);
+  el.btnPrev.addEventListener('click', goPrev);
+  el.btnNext.addEventListener('click', goNext);
+  el.btnResetAll.addEventListener('click', resetAll);
+  el.btnFullscreen.addEventListener('click', toggleFullscreen);
+  el.btnSettings.addEventListener('click', openSettings);
+
+  el.dualPro.addEventListener('click', function () { if (activeSide !== 'pro') switchSide(); });
+  el.dualCon.addEventListener('click', function () { if (activeSide !== 'con') switchSide(); });
+
+  el.btnCloseModal.addEventListener('click', closeSettings);
+  el.btnSave.addEventListener('click', saveSettings);
+  el.btnRestore.addEventListener('click', restoreDefaults);
+  el.modal.addEventListener('click', function (e) { if (e.target === el.modal) closeSettings(); });
+
+  document.addEventListener('keydown', function (e) {
+    const tag = (e.target && e.target.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') {
+      if (e.key === 'Escape') closeSettings();
+      return;
+    }
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      toggleRun();
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      goPrev();
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      goNext();
+    } else if (e.key === 'r' || e.key === 'R') {
+      resetStage();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      switchSide();
+    } else if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    } else if (e.key === 'Escape') {
+      closeSettings();
+    }
+  });
+
+  /* ---------------- 初始化 ---------------- */
+
+  buildStageList();
+  loadStage(0);
+})();
+</script>
+</body>
+</html>
