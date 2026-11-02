@@ -18,5 +18,21 @@
             <artifactId>flash-mall-common</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-product</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- 引入 Redis 依赖，操作 Hash 结构 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>        
     </dependencies>
 </project>

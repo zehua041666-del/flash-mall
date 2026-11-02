@@ -4,10 +4,11 @@
       <h2>登录</h2>
       <el-form :model="form" label-width="0">
         <el-form-item>
-          <el-input v-model="form.username" placeholder="用户名" />
+          <el-input v-model="form.username" placeholder="用户名" @keyup.enter="passwordInputRef?.focus()" />
         </el-form-item>
         <el-form-item>
-          <el-input v-model="form.password" type="password" placeholder="密码" show-password />
+          <el-input ref="passwordInputRef" v-model="form.password" type="password" placeholder="密码" show-password
+            @keyup.enter="handleLogin" />
         </el-form-item>
         <el-button type="primary" style="width: 100%" :loading="loading" @click="handleLogin">
           登录
@@ -16,6 +17,8 @@
       <div class="switch">
         没有账号？<el-link type="primary" @click="$router.push('/register')">去注册</el-link>
       </div>
+      <el-button type="success" @click="$router.push('/products')">浏览商品</el-button>
+
     </el-card>
   </div>
 </template>
@@ -37,8 +40,11 @@ const form = reactive({
 
 // loading 防止用户连点导致重复请求
 const loading = ref(false)
+const passwordInputRef = ref(null)
 
 async function handleLogin() {
+  if (loading.value) return
+
   if (!form.username || !form.password) {
     ElMessage.warning('请输入用户名和密码')
     return
@@ -81,14 +87,17 @@ async function handleLogin() {
   justify-content: center;
   background: #f5f7fa;
 }
+
 .auth-card {
   width: 360px;
   padding: 20px;
 }
+
 h2 {
   text-align: center;
   margin-bottom: 20px;
 }
+
 .switch {
   margin-top: 16px;
   text-align: center;
