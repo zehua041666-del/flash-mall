@@ -1,0 +1,2565 @@
+﻿flash-mall 1.0  核心源码汇总
+生成时间: 2026-11-03 09:14:19
+文件总数: 59
+说明: 已排除 node_modules / target / dist / 图片等二进制资源
+
+==================== 目录 ====================
+  1. backend\flash-mall-app\pom.xml
+  2. backend\flash-mall-app\src\main\java\com\flashmall\FlashMallApplication.java
+  3. backend\flash-mall-app\src\main\resources\application.yml
+  4. backend\flash-mall-app\src\main\resources\db\migration\V1__init.sql
+  5. backend\flash-mall-app\src\main\resources\db\migration\V2__init_product_data.sql
+  6. backend\flash-mall-cart\pom.xml
+  7. backend\flash-mall-cart\src\main\java\com\flashmall\cart\controller\CartController.java
+  8. backend\flash-mall-cart\src\main\java\com\flashmall\cart\dto\AddCartRequest.java
+  9. backend\flash-mall-cart\src\main\java\com\flashmall\cart\dto\CartItemResponse.java
+ 10. backend\flash-mall-cart\src\main\java\com\flashmall\cart\service\CartService.java
+ 11. backend\flash-mall-cart\src\main\java\com\flashmall\cart\service\impl\CartServiceImpl.java
+ 12. backend\flash-mall-common\pom.xml
+ 13. backend\flash-mall-common\src\main\java\com\flashmall\common\context\UserContext.java
+ 14. backend\flash-mall-common\src\main\java\com\flashmall\common\exception\BizException.java
+ 15. backend\flash-mall-common\src\main\java\com\flashmall\common\exception\GlobalExceptionHandler.java
+ 16. backend\flash-mall-common\src\main\java\com\flashmall\common\result\PageResult.java
+ 17. backend\flash-mall-common\src\main\java\com\flashmall\common\result\Result.java
+ 18. backend\flash-mall-common\src\main\java\com\flashmall\common\util\JwtUtil.java
+ 19. backend\flash-mall-product\pom.xml
+ 20. backend\flash-mall-product\src\main\java\com\flashmall\product\config\MybatisPlusConfig.java
+ 21. backend\flash-mall-product\src\main\java\com\flashmall\product\controller\ProductController.java
+ 22. backend\flash-mall-product\src\main\java\com\flashmall\product\dto\response\ProductListResponse.java
+ 23. backend\flash-mall-product\src\main\java\com\flashmall\product\entity\ProductSku.java
+ 24. backend\flash-mall-product\src\main\java\com\flashmall\product\entity\ProductSpu.java
+ 25. backend\flash-mall-product\src\main\java\com\flashmall\product\mapper\ProductSkuMapper.java
+ 26. backend\flash-mall-product\src\main\java\com\flashmall\product\mapper\ProductSpuMapper.java
+ 27. backend\flash-mall-product\src\main\java\com\flashmall\product\service\impl\ProductServiceImpl.java
+ 28. backend\flash-mall-product\src\main\java\com\flashmall\product\service\ProductService.java
+ 29. backend\flash-mall-user\pom.xml
+ 30. backend\flash-mall-user\src\main\java\com\flashmall\user\config\PasswordConfig.java
+ 31. backend\flash-mall-user\src\main\java\com\flashmall\user\config\WebConfig.java
+ 32. backend\flash-mall-user\src\main\java\com\flashmall\user\controller\UserController.java
+ 33. backend\flash-mall-user\src\main\java\com\flashmall\user\dto\request\LoginRequest.java
+ 34. backend\flash-mall-user\src\main\java\com\flashmall\user\dto\request\RegisterRequest.java
+ 35. backend\flash-mall-user\src\main\java\com\flashmall\user\dto\response\LoginResponse.java
+ 36. backend\flash-mall-user\src\main\java\com\flashmall\user\entity\User.java
+ 37. backend\flash-mall-user\src\main\java\com\flashmall\user\interceptor\JwtInterceptor.java
+ 38. backend\flash-mall-user\src\main\java\com\flashmall\user\mapper\UserMapper.java
+ 39. backend\flash-mall-user\src\main\java\com\flashmall\user\service\impl\UserServiceImpl.java
+ 40. backend\flash-mall-user\src\main\java\com\flashmall\user\service\UserService.java
+ 41. backend\pom.xml
+ 42. frontend\index.html
+ 43. frontend\package.json
+ 44. frontend\README.md
+ 45. frontend\src\api\cart.js
+ 46. frontend\src\api\product.js
+ 47. frontend\src\api\request.js
+ 48. frontend\src\api\user.js
+ 49. frontend\src\App.vue
+ 50. frontend\src\main.js
+ 51. frontend\src\router\index.js
+ 52. frontend\src\stores\user.js
+ 53. frontend\src\utils\token.js
+ 54. frontend\src\views\Cart.vue
+ 55. frontend\src\views\Home.vue
+ 56. frontend\src\views\Login.vue
+ 57. frontend\src\views\ProductList.vue
+ 58. frontend\src\views\Register.vue
+ 59. frontend\vite.config.js
+
+
+================================================================================
+// FILE 1/59: backend\flash-mall-app\pom.xml
+================================================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flashmall</groupId>
+        <artifactId>flash-mall</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>flash-mall-app</artifactId>
+
+    <dependencies>
+        <!-- 依赖 user 模块，user 又依赖 common，传递依赖 -->
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-user</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- W2-3 长出 product / order 时，只在这里加依赖，common 不动 -->
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-product</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-cart</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- Flyway 管数据库版本，启动时自动执行 db/migration 下的脚本 -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <!-- MySQL 8 需要额外加 flyway-mysql，只引 flyway-core 不认 MySQL -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+
+================================================================================
+// FILE 2/59: backend\flash-mall-app\src\main\java\com\flashmall\FlashMallApplication.java
+================================================================================
+package com.flashmall;
+
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+// scanBasePackages 必须给到 com.flashmall，
+// 否则默认只扫启动类所在包（com.flashmall），
+// user 模块里的 @Service / @RestController 不会被注册
+@SpringBootApplication(scanBasePackages = "com.flashmall")
+// 一次扫全部模块的 mapper 包，后续新增 Mapper 不用再单独标 @Mapper
+@MapperScan("com.flashmall.**.mapper")
+public class FlashMallApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(FlashMallApplication.class, args);
+    }
+}
+
+================================================================================
+// FILE 3/59: backend\flash-mall-app\src\main\resources\application.yml
+================================================================================
+server:
+  port: 8080
+
+spring:
+  application:
+    name: flash-mall-app
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/flash_mall?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root123
+    hikari:
+      maximum-pool-size: 10
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: redis123
+      database: 0
+
+jwt:
+  # HS256 要求密钥至少 256 位（32 字节），这里用 64 字符长字符串
+  secret: flash-mall-jwt-secret-key-please-change-in-production-0123456789
+  # token 有效期（毫秒），这里 7 天
+  expiration: 604800000
+  
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+================================================================================
+// FILE 4/59: backend\flash-mall-app\src\main\resources\db\migration\V1__init.sql
+================================================================================
+-- ========================================
+-- flash-mall 初始化：核心七张表
+-- ========================================
+
+-- 1. 用户表
+CREATE TABLE `user` (
+    `id`         BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `username`   VARCHAR(50)  NOT NULL                COMMENT '用户名',
+    `password`   VARCHAR(100) NOT NULL                COMMENT '密码(BCrypt)',
+    `phone`      VARCHAR(20)  DEFAULT NULL            COMMENT '手机号',
+    `email`      VARCHAR(100) DEFAULT NULL            COMMENT '邮箱',
+    `nickname`   VARCHAR(50)  DEFAULT NULL            COMMENT '昵称',
+    `avatar`     VARCHAR(255) DEFAULT NULL            COMMENT '头像URL',
+    `status`     TINYINT      NOT NULL DEFAULT 1      COMMENT '1正常/0禁用',
+    `deleted`    TINYINT      NOT NULL DEFAULT 0      COMMENT '0未删/1已删',
+    `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_username` (`username`),
+    UNIQUE KEY `uk_phone` (`phone`),
+    UNIQUE KEY `uk_email` (`email`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户表';
+
+-- 2. 商品SPU表
+CREATE TABLE `product_spu` (
+    `id`          BIGINT       NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `name`        VARCHAR(200) NOT NULL                COMMENT '商品名',
+    `category_id` BIGINT       DEFAULT NULL            COMMENT '分类ID',
+    `brand_id`    BIGINT       DEFAULT NULL            COMMENT '品牌ID',
+    `main_image`  VARCHAR(255) DEFAULT NULL            COMMENT '主图URL',
+    `description` TEXT                                 COMMENT '描述',
+    `status`      TINYINT      NOT NULL DEFAULT 1      COMMENT '0下架/1上架',
+    `deleted`     TINYINT      NOT NULL DEFAULT 0      COMMENT '0未删/1已删',
+    `created_at`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_category_id` (`category_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品SPU表';
+
+-- 3. 商品SKU表
+CREATE TABLE `product_sku` (
+    `id`         BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `spu_id`     BIGINT        NOT NULL                COMMENT '关联SPU',
+    `sku_code`   VARCHAR(64)   NOT NULL                COMMENT '业务编码',
+    `name`       VARCHAR(200)  NOT NULL                COMMENT '规格名',
+    `price`      DECIMAL(10,2) NOT NULL                COMMENT '价格',
+    `image`      VARCHAR(255)  DEFAULT NULL            COMMENT '规格图',
+    `specs`      JSON          DEFAULT NULL            COMMENT '规格{"颜色":"黑"}',
+    `status`     TINYINT       NOT NULL DEFAULT 1      COMMENT '1在售/0停售',
+    `deleted`    TINYINT       NOT NULL DEFAULT 0      COMMENT '0未删/1已删',
+    `created_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_sku_code` (`sku_code`),
+    KEY `idx_spu_id` (`spu_id`),
+    KEY `idx_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='商品SKU表';
+
+-- 4. 订单表
+CREATE TABLE `order` (
+    `id`               BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `order_no`         VARCHAR(32)   NOT NULL                COMMENT '订单号',
+    `user_id`          BIGINT        NOT NULL                COMMENT '用户ID',
+    `idempotent_key`   VARCHAR(64)   NOT NULL                COMMENT '幂等键',
+    `total_amount`     DECIMAL(10,2) NOT NULL                COMMENT '商品总额',
+    `discount_amount`  DECIMAL(10,2) NOT NULL DEFAULT 0.00   COMMENT '优惠',
+    `pay_amount`       DECIMAL(10,2) NOT NULL                COMMENT '实付',
+    `status`           TINYINT       NOT NULL DEFAULT 10     COMMENT '10待支付/20已支付/30已发货/40已完成/50已取消',
+    `cancel_reason`    VARCHAR(255)  DEFAULT NULL            COMMENT '取消原因',
+    `pay_type`         TINYINT       DEFAULT NULL            COMMENT '支付方式',
+    `pay_time`         DATETIME      DEFAULT NULL            COMMENT '支付时间',
+    `close_time`       DATETIME      DEFAULT NULL            COMMENT '关闭时间',
+    `receiver_name`    VARCHAR(50)   NOT NULL                COMMENT '收货人',
+    `receiver_phone`   VARCHAR(20)   NOT NULL                COMMENT '收货电话',
+    `receiver_address` VARCHAR(255)  NOT NULL                COMMENT '收货地址',
+    `remark`           VARCHAR(255)  DEFAULT NULL            COMMENT '备注',
+    `deleted`          TINYINT       NOT NULL DEFAULT 0      COMMENT '0未删/1已删',
+    `created_at`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_order_no` (`order_no`),
+    UNIQUE KEY `uk_user_idempotent` (`user_id`, `idempotent_key`),
+    KEY `idx_user_created` (`user_id`, `created_at`),
+    KEY `idx_status_created` (`status`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单表';
+
+-- 5. 订单明细表
+CREATE TABLE `order_item` (
+    `id`           BIGINT        NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `order_id`     BIGINT        NOT NULL                COMMENT '订单ID',
+    `order_no`     VARCHAR(32)   NOT NULL                COMMENT '订单号(冗余)',
+    `sku_id`       BIGINT        NOT NULL                COMMENT 'SKU_ID',
+    `spu_id`       BIGINT        NOT NULL                COMMENT 'SPU_ID(冗余)',
+    `sku_name`     VARCHAR(200)  NOT NULL                COMMENT 'SKU名(快照)',
+    `sku_image`    VARCHAR(255)  DEFAULT NULL            COMMENT 'SKU图(快照)',
+    `price`        DECIMAL(10,2) NOT NULL                COMMENT '单价(快照)',
+    `quantity`     INT           NOT NULL                COMMENT '数量',
+    `total_amount` DECIMAL(10,2) NOT NULL                COMMENT '小计',
+    `deleted`      TINYINT       NOT NULL DEFAULT 0      COMMENT '0未删/1已删',
+    `created_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`   DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_order_id` (`order_id`),
+    KEY `idx_sku_id` (`sku_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='订单明细表';
+
+-- 6. 库存表
+CREATE TABLE `stock` (
+    `id`              BIGINT   NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `sku_id`          BIGINT   NOT NULL                COMMENT 'SKU_ID',
+    `total_stock`     INT      NOT NULL DEFAULT 0      COMMENT '总库存',
+    `available_stock` INT      NOT NULL DEFAULT 0      COMMENT '可售',
+    `locked_stock`    INT      NOT NULL DEFAULT 0      COMMENT '锁定',
+    `version`         INT      NOT NULL DEFAULT 0      COMMENT '乐观锁版本',
+    `created_at`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_sku_id` (`sku_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='库存表';
+
+-- 说明：cart 表不建，购物车数据存 Redis Hash（key: cart:{userId}, field: skuId, value: 数量）
+
+================================================================================
+// FILE 5/59: backend\flash-mall-app\src\main\resources\db\migration\V2__init_product_data.sql
+================================================================================
+-- ========================================
+-- V2：插入商品测试数据
+-- 只在开发环境用。生产环境不跑这个脚本。
+-- ========================================
+
+-- 3 个 SPU
+INSERT INTO `product_spu` (`id`, `name`, `category_id`, `brand_id`, `main_image`, `description`, `status`) VALUES
+(1, 'iPhone 15 Pro', 1, 1, 'https://picsum.photos/seed/iphone15pro/400/400', 'Apple 旗舰手机，A17 Pro 芯片', 1),
+(2, 'AirPods Pro 2', 2, 1, 'https://picsum.photos/seed/airpodspro2/400/400', '主动降噪无线耳机', 1),
+(3, 'MacBook Air M3', 3, 1, 'https://picsum.photos/seed/macbookairm3/400/400', '13 英寸轻薄本，M3 芯片', 1);
+
+-- 6 个 SKU（每个 SPU 下 2 个规格）
+INSERT INTO `product_sku` (`id`, `spu_id`, `sku_code`, `name`, `price`, `image`, `specs`, `status`) VALUES
+(1, 1, 'IP15P-256-BLK', 'iPhone 15 Pro 256G 黑色', 7999.00, 'https://picsum.photos/seed/ip15p256blk/400/400', '{"颜色":"黑色","容量":"256G"}', 1),
+(2, 1, 'IP15P-512-WHT', 'iPhone 15 Pro 512G 白色', 8999.00, 'https://picsum.photos/seed/ip15p512wht/400/400', '{"颜色":"白色","容量":"512G"}', 1),
+(3, 2, 'APP2-STD', 'AirPods Pro 2 标准版', 1899.00, 'https://picsum.photos/seed/app2std/400/400', '{"版本":"标准版"}', 1),
+(4, 2, 'APP2-USBC', 'AirPods Pro 2 USB-C 版', 1999.00, 'https://picsum.photos/seed/app2usbc/400/400', '{"版本":"USB-C版"}', 1),
+(5, 3, 'MBA-M3-8-256', 'MacBook Air M3 8G+256G', 8999.00, 'https://picsum.photos/seed/mbam38256/400/400', '{"内存":"8G","硬盘":"256G"}', 1),
+(6, 3, 'MBA-M3-16-512', 'MacBook Air M3 16G+512G', 11999.00, 'https://picsum.photos/seed/mbam316512/400/400', '{"内存":"16G","硬盘":"512G"}', 1);
+
+-- 6 条库存（和 SKU 一一对应）
+INSERT INTO `stock` (`sku_id`, `total_stock`, `available_stock`, `locked_stock`, `version`) VALUES
+(1, 100, 100, 0, 0),
+(2, 100, 100, 0, 0),
+(3, 200, 200, 0, 0),
+(4, 200, 200, 0, 0),
+(5, 50, 50, 0, 0),
+(6, 50, 50, 0, 0);
+
+================================================================================
+// FILE 6/59: backend\flash-mall-cart\pom.xml
+================================================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flashmall</groupId>
+        <artifactId>flash-mall</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>flash-mall-cart</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-product</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- 引入 Redis 依赖，操作 Hash 结构 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>        
+    </dependencies>
+</project>
+
+================================================================================
+// FILE 7/59: backend\flash-mall-cart\src\main\java\com\flashmall\cart\controller\CartController.java
+================================================================================
+package com.flashmall.cart.controller;
+
+import com.flashmall.cart.dto.AddCartRequest;
+import com.flashmall.cart.dto.CartItemResponse;
+import com.flashmall.cart.service.CartService;
+import com.flashmall.common.result.Result;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/cart")
+@RequiredArgsConstructor
+public class CartController {
+
+    private final CartService cartService;
+
+    /**
+     * 加入购物车
+     * POST /cart/add
+     */
+    @PostMapping("/add")
+    public Result<Void> addCart(@Valid @RequestBody AddCartRequest request) {
+        cartService.addCart(request);
+        return Result.ok(null);
+    }
+
+    /**
+     * 获取当前用户的购物车列表
+     * GET /cart/list
+     */
+    @GetMapping("/list")
+    public Result<List<CartItemResponse>> getCartList() {
+        return Result.ok(cartService.getCartList());
+    }
+
+    /**
+     * 修改购物车商品数量
+     * PUT /cart/quantity?skuId=1&quantity=5
+     */
+    @PutMapping("/quantity")
+    public Result<Void> updateQuantity(
+            @RequestParam Long skuId,
+            @RequestParam Integer quantity) {
+        cartService.updateQuantity(skuId, quantity);
+        return Result.ok(null);
+    }
+
+    /**
+     * 删除购物车商品
+     * DELETE /cart/1
+     */
+    @DeleteMapping("/{skuId}")
+    public Result<Void> removeCartItem(@PathVariable Long skuId) {
+        cartService.removeCartItem(skuId);
+        return Result.ok(null);
+    }
+}
+
+================================================================================
+// FILE 8/59: backend\flash-mall-cart\src\main\java\com\flashmall\cart\dto\AddCartRequest.java
+================================================================================
+package com.flashmall.cart.dto;
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class AddCartRequest {
+    
+    @NotNull(message = "SKU ID不能为空")
+    private Long skuId;
+
+    @NotNull(message = "数量不能为空")
+    @Min(value = 1, message = "数量不能少于1")
+    private Integer quantity;
+}
+
+================================================================================
+// FILE 9/59: backend\flash-mall-cart\src\main\java\com\flashmall\cart\dto\CartItemResponse.java
+================================================================================
+package com.flashmall.cart.dto;
+
+import lombok.Data;
+import java.math.BigDecimal;
+
+@Data
+public class CartItemResponse {
+    private Long skuId;
+    private String skuName;
+    private String skuImage;
+    private BigDecimal price;
+    private Integer quantity;
+    
+    // 总价 = 单价 * 数量。在服务端算好，前端直接展示，防止前端算错
+    private BigDecimal totalPrice; 
+}
+
+================================================================================
+// FILE 10/59: backend\flash-mall-cart\src\main\java\com\flashmall\cart\service\CartService.java
+================================================================================
+package com.flashmall.cart.service;
+
+import com.flashmall.cart.dto.AddCartRequest;
+import com.flashmall.cart.dto.CartItemResponse;
+
+import java.util.List;
+
+public interface CartService {
+    
+    // 加入购物车
+    void addCart(AddCartRequest request);
+
+    // 查询当前用户的购物车列表
+    List<CartItemResponse> getCartList();
+
+    // 修改数量（传入 skuId 和 新数量）
+    void updateQuantity(Long skuId, Integer quantity);
+
+    // 删除商品
+    void removeCartItem(Long skuId);
+}
+
+================================================================================
+// FILE 11/59: backend\flash-mall-cart\src\main\java\com\flashmall\cart\service\impl\CartServiceImpl.java
+================================================================================
+package com.flashmall.cart.service.impl;
+
+import com.flashmall.cart.dto.AddCartRequest;
+import com.flashmall.cart.dto.CartItemResponse;
+import com.flashmall.cart.service.CartService;
+import com.flashmall.common.context.UserContext;
+import com.flashmall.product.entity.ProductSku;
+import com.flashmall.product.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class CartServiceImpl implements CartService {
+
+    private final StringRedisTemplate redisTemplate;
+    private final ProductService productService;
+
+    // Redis 购物车的 Key 前缀
+    private static final String CART_KEY_PREFIX = "cart:";
+
+    /**
+     * 获取当前用户的 Redis Key，例如 cart:1001
+     */
+    private String getCartKey() {
+        Long userId = UserContext.getUserId();
+        // 如果拦截器没拦住，userId 为空，抛异常
+        if (userId == null) {
+            throw new RuntimeException("用户未登录");
+        }
+        return CART_KEY_PREFIX + userId;
+    }
+
+    @Override
+    public void addCart(AddCartRequest request) {
+        String key = getCartKey();
+        String field = String.valueOf(request.getSkuId());
+        
+        // opsForHash().increment 是原子的。如果该 field 不存在，会初始化为 0 再累加。
+        // 比如原本买了 2 个，再加 3 个，Redis 会直接变成 5。
+        redisTemplate.opsForHash().increment(key, field, request.getQuantity());
+    }
+
+    @Override
+    public List<CartItemResponse> getCartList() {
+        String key = getCartKey();
+        
+        // 1. 从 Redis 获取所有购物车项（key 是 skuId，value 是数量）
+        Map<Object, Object> entries = redisTemplate.opsForHash().entries(key);
+        if (entries.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 2. 提取所有的 skuId 并转为 Long 集合
+        List<Long> skuIds = entries.keySet().stream()
+                .map(obj -> Long.valueOf(obj.toString())) 
+                .toList();
+
+        // 3. 跨模块调用：通过商品模块的接口拿数据，绝对不查数据库
+        List<ProductSku> skuList = productService.getSkuByIds(skuIds);
+        
+        // 将查出来的商品信息转为 Map，方便根据 skuId 快速匹配
+        Map<Long, ProductSku> skuMap = skuList.stream()
+                .collect(Collectors.toMap(ProductSku::getId, Function.identity()));
+
+        // 4. 组装返回给前端的列表
+        List<CartItemResponse> responseList = new ArrayList<>();
+        for (Map.Entry<Object, Object> entry : entries.entrySet()) {
+            Long skuId = Long.valueOf(entry.getKey().toString());
+            Integer quantity = Integer.valueOf(entry.getValue().toString());
+
+            ProductSku sku = skuMap.get(skuId);
+            if (sku == null) {
+                // 如果商品被下架删除了（skuMap 里找不到），可以选择跳过或者当垃圾数据清理
+                continue; 
+            }
+
+            CartItemResponse item = new CartItemResponse();
+            item.setSkuId(skuId);
+            item.setSkuName(sku.getName());
+            item.setSkuImage(sku.getImage());
+            item.setPrice(sku.getPrice());
+            item.setQuantity(quantity);
+            
+            // 计算单行小计：单价 * 数量
+            item.setTotalPrice(sku.getPrice().multiply(new BigDecimal(quantity)));
+
+            responseList.add(item);
+        }
+
+        return responseList;
+    }
+
+    @Override
+    public void updateQuantity(Long skuId, Integer quantity) {
+        String key = getCartKey();
+        String field = String.valueOf(skuId);
+        
+        if (quantity <= 0) {
+            // 如果数量减到 0，直接删除该项
+            redisTemplate.opsForHash().delete(key, field);
+        } else {
+            // 直接覆盖更新数量
+            redisTemplate.opsForHash().put(key, field, String.valueOf(quantity));
+        }
+    }
+
+    @Override
+    public void removeCartItem(Long skuId) {
+        String key = getCartKey();
+        redisTemplate.opsForHash().delete(key, String.valueOf(skuId));
+    }
+}
+
+================================================================================
+// FILE 12/59: backend\flash-mall-common\pom.xml
+================================================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flashmall</groupId>
+        <artifactId>flash-mall</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>flash-mall-common</artifactId>
+
+    <dependencies>
+        <!-- common 里放全局异常处理器，需要 web 上下文 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <scope>runtime</scope>
+        </dependency>        
+    </dependencies>
+</project>
+
+================================================================================
+// FILE 13/59: backend\flash-mall-common\src\main\java\com\flashmall\common\context\UserContext.java
+================================================================================
+package com.flashmall.common.context;
+
+public class UserContext {
+    private static final ThreadLocal<Long> USER_ID_HOLDER = new ThreadLocal<>();
+
+    public static void setUserId(Long userId) {
+        USER_ID_HOLDER.set(userId);
+    }
+
+    public static Long getUserId() {
+        return USER_ID_HOLDER.get();
+    }
+
+    public static void clear() {
+        USER_ID_HOLDER.remove();
+    }
+}
+
+
+================================================================================
+// FILE 14/59: backend\flash-mall-common\src\main\java\com\flashmall\common\exception\BizException.java
+================================================================================
+package com.flashmall.common.exception;
+
+import lombok.Getter;
+
+
+// TODO: BizException 到底为什么需要，我还没完全想清楚，回头补
+
+@Getter
+public class BizException extends RuntimeException {
+    private final int code;
+
+    public BizException(int code,String message){
+        super(message);
+        this.code = code;
+    }
+    public BizException(String message){
+        this(500,message);
+    }
+}
+
+
+================================================================================
+// FILE 15/59: backend\flash-mall-common\src\main\java\com\flashmall\common\exception\GlobalExceptionHandler.java
+================================================================================
+package com.flashmall.common.exception;
+
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.flashmall.common.result.Result;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BizException.class)
+    public Result<Void> handleBiz(BizException e) {
+        return Result.fail(e.getCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public Result<Void> handleValid(MethodArgumentNotValidException e) {
+        var fieldError = e.getBindingResult().getFieldError();
+        String msg = fieldError == null ? "参数校验失败" : fieldError.getDefaultMessage();
+        return Result.fail(400, msg);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public Result<Void> handleOthers(Exception e) {
+        e.printStackTrace();
+        return Result.fail(500, "系统异常");
+    }
+}
+
+
+================================================================================
+// FILE 16/59: backend\flash-mall-common\src\main\java\com\flashmall\common\result\PageResult.java
+================================================================================
+package com.flashmall.common.result;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+import java.util.List;
+
+/**
+ * 通用分页结果。
+ * 放 common，后续 order / cart 等模块分页都复用。
+ */
+@Data
+@AllArgsConstructor
+public class PageResult<T> {
+    private long total;       // 总记录数
+    private long pageNum;     // 当前页码（从 1 开始）
+    private long pageSize;    // 每页条数
+    private List<T> list;     // 当前页数据
+}
+
+================================================================================
+// FILE 17/59: backend\flash-mall-common\src\main\java\com\flashmall\common\result\Result.java
+================================================================================
+package com.flashmall.common.result ;
+
+import lombok.Data;
+
+@Data
+public class Result<T> {
+    private int code;
+    private String messaage;
+    private T data;
+    
+    public static <T> Result<T> ok (T data){
+        Result<T> r = new Result<>();
+        r.code = 0 ;
+        r.messaage = "ok";
+        r.data =data;
+        return r;
+    }
+    public static <T> Result<T> fail(int code,String message){
+        Result<T> r = new Result<>();
+        r.code = code;
+        r.messaage = message;
+        return  r;
+    }
+}
+
+================================================================================
+// FILE 18/59: backend\flash-mall-common\src\main\java\com\flashmall\common\util\JwtUtil.java
+================================================================================
+package com.flashmall.common.util;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+
+/**
+ * JWT 工具类：生成 token、解析 token。
+ * 放在 common 模块，因为 W7 拆服务后 gateway 也要校验 token，两边共用一份。
+ */
+@Component
+public class JwtUtil {
+
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @Value("${jwt.expiration}")
+    private long expiration;
+
+    /**
+     * 根据密钥字符串生成 SecretKey。
+     * jjwt 0.12.x 要求密钥至少 256 位，否则抛 WeakKeyException。
+     */
+    private SecretKey getKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+    }
+
+    /**
+     * 生成 token，payload 里放 userId 和 username。
+     */
+    public String generateToken(Long userId, String username) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expiration);
+
+        return Jwts.builder()
+                .subject(String.valueOf(userId))      // subject 存 userId
+                .claim("username", username)          // 额外 claim 存 username
+                .issuedAt(now)
+                .expiration(expiry)
+                .signWith(getKey())
+                .compact();
+    }
+
+    /**
+     * 解析 token，返回 Claims（payload）。
+     * token 无效 / 过期 → 抛 JwtException，调用方自己 catch。
+     */
+    public Claims parseToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    /**
+     * 从 token 里取 userId。
+     */
+    public Long getUserId(String token) {
+        return Long.valueOf(parseToken(token).getSubject());
+    }
+
+    /**
+     * 从 token 里取 username。
+     */
+    public String getUsername(String token) {
+        return parseToken(token).get("username", String.class);
+    }
+}
+
+================================================================================
+// FILE 19/59: backend\flash-mall-product\pom.xml
+================================================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flashmall</groupId>
+        <artifactId>flash-mall</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>flash-mall-product</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</project>
+
+================================================================================
+// FILE 20/59: backend\flash-mall-product\src\main\java\com\flashmall\product\config\MybatisPlusConfig.java
+================================================================================
+package com.flashmall.product.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.baomidou.mybatisplus.annotation.DbType;
+import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+
+@Configuration 
+public class MybatisPlusConfig {
+    
+    @Bean 
+    public MybatisPlusInterceptor mybatisPlusInterceptor(){
+        MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(DbType.MYSQL));
+
+        return interceptor;
+    }
+}
+
+
+================================================================================
+// FILE 21/59: backend\flash-mall-product\src\main\java\com\flashmall\product\controller\ProductController.java
+================================================================================
+package com.flashmall.product.controller;
+
+import com.flashmall.common.result.PageResult;
+import com.flashmall.common.result.Result;
+import com.flashmall.product.dto.response.ProductListResponse;
+import com.flashmall.product.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/product")
+@RequiredArgsConstructor
+public class ProductController {
+
+    private final ProductService productService;
+
+    /**
+     * GET /product/list?pageNum=1&pageSize=10
+     * @RequestParam(defaultValue=...) 让参数可不传，不传用默认值
+     */
+    @GetMapping("/list")
+    public Result<PageResult<ProductListResponse>> list(
+            @RequestParam(defaultValue = "1") int pageNum,
+            @RequestParam(defaultValue = "10") int pageSize) {
+        return Result.ok(productService.listProducts(pageNum, pageSize));
+    }
+}
+
+================================================================================
+// FILE 22/59: backend\flash-mall-product\src\main\java\com\flashmall\product\dto\response\ProductListResponse.java
+================================================================================
+package com.flashmall.product.dto.response;
+
+import lombok.Data;
+
+import java.math.BigDecimal;
+
+/**
+ * 商品列表页的每一项。
+ * 只返回列表页需要展示的字段——不返回 SPU 的全部字段（description 可能很长）。
+ */
+@Data
+public class ProductListResponse {
+
+    private Long spuId;
+
+    private String name;
+
+    private String mainImage;
+
+    // 该 SPU 下所有在售 SKU 的最低价，列表页展示"¥xxxx 起"
+    private BigDecimal minPrice;
+}
+
+================================================================================
+// FILE 23/59: backend\flash-mall-product\src\main\java\com\flashmall\product\entity\ProductSku.java
+================================================================================
+package com.flashmall.product.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+@TableName("product_sku")
+public class ProductSku {
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    private Long spuId;
+
+    private String skuCode;
+
+    private String name;
+
+    // 金额必须用 BigDecimal，double 有精度问题（0.1+0.2 != 0.3）
+    private BigDecimal price;
+
+    private String image;
+
+    // MySQL JSON 字段，存字符串形式：{"颜色":"黑色","容量":"256G"}
+    // 读出来时原样返回给前端，不用在这里解析
+    private String specs;
+
+    private Integer status;
+
+    @TableLogic
+    private Integer deleted;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+}
+
+================================================================================
+// FILE 24/59: backend\flash-mall-product\src\main\java\com\flashmall\product\entity\ProductSpu.java
+================================================================================
+package com.flashmall.product.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@TableName("product_spu")
+public class ProductSpu {
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    private String name;
+
+    private Long categoryId;
+
+    private Long brandId;
+
+    private String mainImage;
+
+    private String description;
+
+    private Integer status;
+
+    @TableLogic
+    private Integer deleted;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+}
+
+================================================================================
+// FILE 25/59: backend\flash-mall-product\src\main\java\com\flashmall\product\mapper\ProductSkuMapper.java
+================================================================================
+package com.flashmall.product.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.flashmall.product.entity.ProductSku;
+
+public interface ProductSkuMapper extends BaseMapper<ProductSku> {
+    
+}
+
+
+================================================================================
+// FILE 26/59: backend\flash-mall-product\src\main\java\com\flashmall\product\mapper\ProductSpuMapper.java
+================================================================================
+package com.flashmall.product.mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.flashmall.product.entity.ProductSpu;
+
+public interface ProductSpuMapper extends BaseMapper<ProductSpu>{
+    
+}
+
+
+================================================================================
+// FILE 27/59: backend\flash-mall-product\src\main\java\com\flashmall\product\service\impl\ProductServiceImpl.java
+================================================================================
+package com.flashmall.product.service.impl;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.flashmall.common.result.PageResult;
+import com.flashmall.product.dto.response.ProductListResponse;
+import com.flashmall.product.entity.ProductSku;
+import com.flashmall.product.entity.ProductSpu;
+import com.flashmall.product.mapper.ProductSkuMapper;
+import com.flashmall.product.mapper.ProductSpuMapper;
+import com.flashmall.product.service.ProductService;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ProductServiceImpl implements ProductService {
+    private final ProductSpuMapper productSpuMapper;
+    private final ProductSkuMapper productSkuMapper;
+
+    @Override
+    public PageResult<ProductListResponse> listProducts(int pageNum, int pageSize) {
+        Page<ProductSpu> page = productSpuMapper.selectPage(new Page<>(pageNum, pageSize),
+                new LambdaQueryWrapper<ProductSpu>().eq(ProductSpu::getStatus, 1).orderByDesc(ProductSpu::getId));
+        List<ProductSpu> spuList = page.getRecords();
+        if (spuList.isEmpty()) {
+            return new PageResult<>(page.getTotal(), page.getCurrent(), page.getSize(), Collections.emptyList());
+        }
+        List<Long> spuIds = spuList.stream().map(ProductSpu::getId).toList();
+        List<ProductSku> allSkus = productSkuMapper.selectList(
+                new LambdaQueryWrapper<ProductSku>().in(ProductSku::getSpuId, spuIds).eq(ProductSku::getStatus, 1));
+        Map<Long, List<ProductSku>> skusBySpu = allSkus.stream().collect(Collectors.groupingBy(ProductSku::getSpuId));
+        List<ProductListResponse> list = spuList.stream().map(spu -> {
+            ProductListResponse item = new ProductListResponse();
+            item.setSpuId(spu.getId());
+            item.setName(spu.getName());
+            item.setMainImage(spu.getMainImage());
+
+            List<ProductSku> skus = skusBySpu.getOrDefault(spu.getId(), Collections.emptyList());
+            BigDecimal minPrice = skus.stream().map(ProductSku::getPrice).min(BigDecimal::compareTo)
+                    .orElse(BigDecimal.ZERO);
+            item.setMinPrice(minPrice);
+            return item;
+        }).toList();
+        return new PageResult<>(page.getTotal(), page.getCurrent(), page.getSize(), list);
+    }
+
+    @Override
+    public List<ProductSku> getSkuByIds(List<Long> skuIds) {
+        if (skuIds == null || skuIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return productSkuMapper.selectList(
+                new LambdaQueryWrapper<ProductSku>().in(ProductSku::getId, skuIds));
+    }
+
+}
+
+
+================================================================================
+// FILE 28/59: backend\flash-mall-product\src\main\java\com\flashmall\product\service\ProductService.java
+================================================================================
+package com.flashmall.product.service;
+
+import java.util.List;
+
+import com.flashmall.common.result.PageResult;
+import com.flashmall.product.dto.response.ProductListResponse;
+import com.flashmall.product.entity.ProductSku;
+
+public interface ProductService {
+    PageResult<ProductListResponse> listProducts (int pageNum,int pageSize);
+
+    List<ProductSku> getSkuByIds(List<Long> skuIds);
+}
+
+================================================================================
+// FILE 29/59: backend\flash-mall-user\pom.xml
+================================================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.flashmall</groupId>
+        <artifactId>flash-mall</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>flash-mall-user</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <!-- 依赖 common，用它的 Result / 异常处理 -->
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- Boot 3 必须用 spring-boot3-starter，版本从父 POM 继承 -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+        <!-- 只引 crypto，不引整个 Spring Security：W1 只需要 BCrypt -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-crypto</artifactId>
+        </dependency>
+    </dependencies>
+</project>
+
+================================================================================
+// FILE 30/59: backend\flash-mall-user\src\main\java\com\flashmall\user\config\PasswordConfig.java
+================================================================================
+package com.flashmall.user.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+/**
+ * 项目只引了 spring-security-crypto，没引完整 Spring Security，
+ * 所以没有自动配置的 PasswordEncoder Bean，需要手动定义。
+ */
+@Configuration
+public class PasswordConfig {
+
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        // BCrypt 内置随机 salt，同一个密码每次加密结果都不同，但 matches 能正确校验
+        return new BCryptPasswordEncoder();
+    }
+}
+
+================================================================================
+// FILE 31/59: backend\flash-mall-user\src\main\java\com\flashmall\user\config\WebConfig.java
+================================================================================
+package com.flashmall.user.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import com.flashmall.user.interceptor.JwtInterceptor;
+
+import lombok.RequiredArgsConstructor;
+
+
+@RequiredArgsConstructor 
+@Configuration //注明这是一个配置类 
+public class WebConfig implements WebMvcConfigurer{
+    private final JwtInterceptor jwtInterceptor;
+
+    @Override 
+    public void addInterceptors(InterceptorRegistry registry){
+        registry.addInterceptor(jwtInterceptor)
+        .addPathPatterns("/**")
+        .excludePathPatterns("/user/login","/user/register")
+        .excludePathPatterns("/product/**")
+        .excludePathPatterns("/error");
+    }
+    
+}
+
+
+================================================================================
+// FILE 32/59: backend\flash-mall-user\src\main\java\com\flashmall\user\controller\UserController.java
+================================================================================
+package com.flashmall.user.controller;
+
+import com.flashmall.common.result.Result;
+import com.flashmall.user.dto.request.LoginRequest;
+import com.flashmall.user.dto.request.RegisterRequest;
+import com.flashmall.user.dto.response.LoginResponse;
+import com.flashmall.user.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/user")
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserService userService;
+
+    @PostMapping("/register")
+    public Result<Void> register(@Valid @RequestBody RegisterRequest request) {
+        // @Valid 触发 DTO 上的校验注解，不通过直接抛 MethodArgumentNotValidException
+        // 被 GlobalExceptionHandler 接住，返回 400 + 具体提示，不会进入方法体
+        userService.register(request);
+        return Result.ok(null);
+    }
+
+    @PostMapping("/login")
+    public Result<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return Result.ok(userService.login(request));
+    }
+}
+
+================================================================================
+// FILE 33/59: backend\flash-mall-user\src\main\java\com\flashmall\user\dto\request\LoginRequest.java
+================================================================================
+package com.flashmall.user.dto.request;
+
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
+
+@Data
+public class LoginRequest {
+
+    @NotBlank(message = "用户名不能为空")
+    private String username;
+
+    @NotBlank(message = "密码不能为空")
+    private String password;
+}
+
+================================================================================
+// FILE 34/59: backend\flash-mall-user\src\main\java\com\flashmall\user\dto\request\RegisterRequest.java
+================================================================================
+package com.flashmall.user.dto.request;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+/**
+ * 注册请求体。
+ * 用 @NotBlank / @Size / @Email 做参数校验，
+ * Controller 里加 @Valid 后，不合法参数会被 GlobalExceptionHandler 的
+ * MethodArgumentNotValidException 分支统一处理成 400。
+ */
+@Data
+public class RegisterRequest {
+
+    @NotBlank(message = "用户名不能为空")
+    @Size(min = 3, max = 50, message = "用户名长度需在 3~50 之间")
+    private String username;
+
+    @NotBlank(message = "密码不能为空")
+    @Size(min = 6, max = 50, message = "密码长度需在 6~50 之间")
+    private String password;
+
+    @Email(message = "邮箱格式不正确")
+    private String email;
+}
+
+================================================================================
+// FILE 35/59: backend\flash-mall-user\src\main\java\com\flashmall\user\dto\response\LoginResponse.java
+================================================================================
+package com.flashmall.user.dto.response;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+/**
+ * 登录成功后返回给前端的数据。
+ * token 用于后续请求的 Authorization header，
+ * 其余字段方便前端直接展示，不用再单独查一次用户信息。
+ */
+@Data
+@AllArgsConstructor
+public class LoginResponse {
+
+    private String token;
+
+    private Long userId;
+
+    private String username;
+
+    private String nickname;
+}
+
+================================================================================
+// FILE 36/59: backend\flash-mall-user\src\main\java\com\flashmall\user\entity\User.java
+================================================================================
+package com.flashmall.user.entity;
+
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+@TableName("`user`")   // 表名是 MySQL 关键字，必须加反引号，否则 SQL 报错
+public class User {
+
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    private String username;
+
+    private String password;
+
+    private String phone;
+
+    private String email;
+
+    private String nickname;
+
+    private String avatar;
+
+    private Integer status;
+
+    // MyBatis-Plus 逻辑删除标记：0 未删 / 1 已删
+    // 查询时 MyBatis-Plus 自动追加 WHERE deleted = 0
+    @TableLogic
+    private Integer deleted;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
+}
+
+================================================================================
+// FILE 37/59: backend\flash-mall-user\src\main\java\com\flashmall\user\interceptor\JwtInterceptor.java
+================================================================================
+package com.flashmall.user.interceptor;
+
+import com.flashmall.common.context.UserContext;
+import com.flashmall.common.exception.BizException;
+import com.flashmall.common.util.JwtUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.HandlerInterceptor;
+
+@Component
+@RequiredArgsConstructor
+public class JwtInterceptor implements HandlerInterceptor {
+
+    private final JwtUtil jwtUtil;
+
+    @Override
+    public boolean preHandle(HttpServletRequest request,HttpServletResponse response ,Object handler) throws Exception{
+        String authHeader =request.getHeader("Authorization");
+
+        if (!StringUtils.hasText(authHeader)|| !authHeader.startsWith("Bearer ")) {
+            throw new BizException(401,"未登录或token已过期");
+        }
+        String token = authHeader.substring(7);
+        try{
+            Long userId =jwtUtil.getUserId(token);
+            UserContext.setUserId(userId);
+            return true;
+        }
+        catch (Exception e){
+            throw new BizException(401,"Token无效或已过期");
+        }
+
+    }
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        // 7. 请求结束，必须清理 ThreadLocal，防止内存泄漏
+        UserContext.clear();
+    }
+}
+
+================================================================================
+// FILE 38/59: backend\flash-mall-user\src\main\java\com\flashmall\user\mapper\UserMapper.java
+================================================================================
+package com.flashmall.user.mapper;
+
+import org.apache.ibatis.annotations.Mapper;
+
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.flashmall.user.entity.User;
+
+@Mapper 
+public interface UserMapper extends BaseMapper<User>{
+    
+}
+
+
+================================================================================
+// FILE 39/59: backend\flash-mall-user\src\main\java\com\flashmall\user\service\impl\UserServiceImpl.java
+================================================================================
+package com.flashmall.user.service.impl;
+
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.flashmall.common.exception.BizException;
+import com.flashmall.common.util.JwtUtil;
+import com.flashmall.user.dto.request.LoginRequest;
+import com.flashmall.user.dto.request.RegisterRequest;
+import com.flashmall.user.dto.response.LoginResponse;
+import com.flashmall.user.entity.User;
+import com.flashmall.user.mapper.UserMapper;
+import com.flashmall.user.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
+    @Override
+    public void register(RegisterRequest request) {
+        // 先查用户名是否已存在
+        // MyBatis-Plus 逻辑删除：这里自动带 WHERE deleted = 0，已删的用户名可以复用
+        //这里是MP的实际应用 我现在不太清楚 所以 现在我先用我的理解来描述一下 这个的过程 首先就是 他是直接先看request.getusername
+        //然后 后面是
+        Long count = userMapper.selectCount(
+                new LambdaQueryWrapper<User>().eq(User::getUsername, request.getUsername())
+        );
+        if (count > 0) {
+            throw new BizException(400, "用户名已存在");
+        }
+
+        User user = new User();
+        user.setUsername(request.getUsername());
+        // BCrypt 加密，绝不能明文入库
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setEmail(request.getEmail());
+        user.setStatus(1);   // 默认正常
+
+        userMapper.insert(user);
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        User user = userMapper.selectOne(
+                new LambdaQueryWrapper<User>().eq(User::getUsername, request.getUsername())
+        );
+
+        // 用户不存在 和 密码错误，故意返回同一个提示
+        // 防止攻击者通过错误信息判断"用户名是否存在"（用户名枚举攻击）
+        if (user == null || !passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BizException(400, "用户名或密码错误");
+        }
+
+        if (user.getStatus() == null || user.getStatus() != 1) {
+            throw new BizException(403, "账号已被禁用");
+        }
+
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
+        return new LoginResponse(token, user.getId(), user.getUsername(), user.getNickname());
+    }
+}
+
+================================================================================
+// FILE 40/59: backend\flash-mall-user\src\main\java\com\flashmall\user\service\UserService.java
+================================================================================
+package com.flashmall.user.service;
+
+import com.flashmall.user.dto.request.LoginRequest;
+import com.flashmall.user.dto.request.RegisterRequest;
+import com.flashmall.user.dto.response.LoginResponse;
+
+public interface UserService {
+
+    void register(RegisterRequest request);
+
+    LoginResponse login(LoginRequest request);
+}
+
+================================================================================
+// FILE 41/59: backend\pom.xml
+================================================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.flashmall</groupId>
+    <artifactId>flash-mall</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>flash-mall-common</module>
+        <module>flash-mall-user</module>
+        <module>flash-mall-app</module>
+        <module>flash-mall-cart</module>
+        <module>flash-mall-product</module>
+    </modules>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- 版本全部锁死在父 POM，子模块只声明 groupId + artifactId -->
+        <spring-boot.version>3.2.5</spring-boot.version>
+        <spring-cloud.version>2023.0.1</spring-cloud.version>
+        <spring-cloud-alibaba.version>2023.0.1.0</spring-cloud-alibaba.version>
+        <!-- Boot 3 必须用 spring-boot3-starter，普通版会因 mybatis-spring 版本对不上启动失败 -->
+        <mybatis-plus.version>3.5.5</mybatis-plus.version>
+        <jjwt.version>0.12.6</jjwt.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${spring-cloud-alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-plus.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>            
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.13.0</version>
+                    <configuration>
+                        <source>17</source>
+                        <target>17</target>
+                        <!-- 保留参数名，Spring 6 里 @PathVariable / @RequestParam 不写 name 也能解析 -->
+                        <parameters>true</parameters>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <version>${spring-boot.version}</version>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
+
+================================================================================
+// FILE 42/59: frontend\index.html
+================================================================================
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>frontend</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+
+
+================================================================================
+// FILE 43/59: frontend\package.json
+================================================================================
+{
+  "name": "frontend",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "element-plus": "^2.14.7",
+    "pinia": "^4.1.0",
+    "vue": "^3.5.42",
+    "vue-router": "^5.4.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.0.8",
+    "vite": "^8.3.0"
+  }
+}
+
+
+================================================================================
+// FILE 44/59: frontend\README.md
+================================================================================
+# Vue 3 + Vite
+
+This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+
+Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+
+
+================================================================================
+// FILE 45/59: frontend\src\api\cart.js
+================================================================================
+import request from './request'
+
+// 加入购物车
+export function addToCart(data) {
+  return request.post('/cart/add', data)
+}
+
+// 获取购物车列表
+export function getCartList() {
+  return request.get('/cart/list')
+}
+
+// 修改数量
+export function updateCartQuantity(skuId, quantity) {
+  return request.put('/cart/quantity', null, {
+    params: { skuId, quantity }
+  })
+}
+
+// 删除商品
+export function removeCartItem(skuId) {
+  return request.delete(`/cart/${skuId}`)
+}
+
+================================================================================
+// FILE 46/59: frontend\src\api\product.js
+================================================================================
+import request from './request'
+
+/**
+ * 获取商品列表分页数据
+ * @param {number} pageNum 第几页
+ * @param {number} pageSize 每页多少条
+ */
+export function getProductList(pageNum = 1, pageSize = 10) {
+  return request.get('/product/list', {
+    params: { pageNum, pageSize }
+  })
+}
+
+================================================================================
+// FILE 47/59: frontend\src\api\request.js
+================================================================================
+import axios from 'axios'
+import { ElMessage } from 'element-plus'
+import { getToken, clearToken } from '@/utils/token'
+import router from '@/router'
+
+const request = axios.create({
+  baseURL: '/api',
+  timeout: 10000
+})
+
+// 请求拦截：统一注入 token，业务代码不用每次手动加 header
+request.interceptors.request.use(
+  (config) => {
+    const token = getToken()
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => Promise.reject(error)
+)
+
+// 响应拦截：与后端 Result{code, message, data} 约定对齐
+// code=0 成功直接吐 data，业务代码拿到的就是纯数据
+request.interceptors.response.use(
+  (response) => {
+    const res = response.data
+    if (res.code !== 0) {
+      ElMessage.error(res.message || '请求失败')
+      if (res.code === 401) {
+        clearToken()
+        router.push('/login')
+      }
+      return Promise.reject(new Error(res.message || 'Error'))
+    }
+    return res.data
+  },
+  (error) => {
+    // HTTP 层异常（网络断、超时、500 未走到 Result 包装）
+    ElMessage.error(error.message || '网络异常')
+    return Promise.reject(error)
+  }
+)
+
+export default request
+
+================================================================================
+// FILE 48/59: frontend\src\api\user.js
+================================================================================
+import request from './request'
+
+export function register(data) {
+  return request.post('/user/register', data)
+}
+
+export function login(data) {
+  return request.post('/user/login', data)
+}
+
+================================================================================
+// FILE 49/59: frontend\src\App.vue
+================================================================================
+<template>
+  <router-view />
+</template>
+
+<script setup>
+</script>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+</style>
+
+================================================================================
+// FILE 50/59: frontend\src\main.js
+================================================================================
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import ElementPlus from 'element-plus'
+import 'element-plus/dist/index.css'
+import App from './App.vue'
+import router from './router'
+
+const app = createApp(App)
+app.use(createPinia())
+app.use(router)
+app.use(ElementPlus)
+app.mount('#app')
+
+================================================================================
+// FILE 51/59: frontend\src\router\index.js
+================================================================================
+import { createRouter, createWebHistory } from 'vue-router'
+
+const routes = [
+  { path: '/', name: 'Home', component: () => import('@/views/Home.vue') },
+  { path: '/login', name: 'Login', component: () => import('@/views/Login.vue') },
+  { path: '/register', name: 'Register', component: () => import('@/views/Register.vue') },
+  { path: '/products', name: 'ProductList', component: () => import('@/views/ProductList.vue') },
+  { path: '/cart', name: 'Cart', component: () => import('@/views/Cart.vue') }
+]
+
+// 动态权限路由、路由守卫一律不做，等以后要再加
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+export default router
+
+================================================================================
+// FILE 52/59: frontend\src\stores\user.js
+================================================================================
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { getToken, setToken, clearToken } from '@/utils/token'
+
+export const useUserStore = defineStore('user', () => {
+  const token = ref(getToken() || '')
+  const userInfo = ref(null)
+
+  function loginSuccess(t, info) {
+    token.value = t
+    userInfo.value = info
+    setToken(t)
+  }
+
+  function logout() {
+    token.value = ''
+    userInfo.value = null
+    clearToken()
+  }
+
+  return { token, userInfo, loginSuccess, logout }
+})
+
+================================================================================
+// FILE 53/59: frontend\src\utils\token.js
+================================================================================
+const TOKEN_KEY = 'flash-mall-token'
+
+export function getToken() {
+  return localStorage.getItem(TOKEN_KEY)
+}
+
+export function setToken(token) {
+  localStorage.setItem(TOKEN_KEY, token)
+}
+
+export function clearToken() {
+  localStorage.removeItem(TOKEN_KEY)
+}
+
+================================================================================
+// FILE 54/59: frontend\src\views\Cart.vue
+================================================================================
+<template>
+  <div class="cart-page">
+    <h2>我的购物车</h2>
+
+    <!-- v-loading 请求时转圈 -->
+    <div v-loading="loading">
+      <!-- 如果有数据，展示表格 -->
+      <el-table :data="cartList" style="width: 100%" v-if="cartList.length > 0">
+        
+        <!-- 商品信息列（图片 + 名字） -->
+        <el-table-column label="商品" width="350">
+          <template #default="scope">
+            <div class="product-info">
+              <img :src="scope.row.skuImage" class="product-img" />
+              <span class="product-name">{{ scope.row.skuName }}</span>
+            </div>
+          </template>
+        </el-table-column>
+
+        <!-- 单价列 -->
+        <el-table-column label="单价" width="150">
+          <template #default="scope">
+            ¥ {{ scope.row.price }}
+          </template>
+        </el-table-column>
+
+        <!-- 数量列（加减号） -->
+        <el-table-column label="数量" width="200">
+          <template #default="scope">
+            <el-input-number 
+              v-model="scope.row.quantity" 
+              :min="1" 
+              @change="(currentValue) => handleQuantityChange(scope.row.skuId, currentValue)"
+            />
+          </template>
+        </el-table-column>
+
+        <!-- 小计列 -->
+        <el-table-column label="小计" width="150">
+          <template #default="scope">
+            <span class="total-price">¥ {{ scope.row.totalPrice }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- 操作列（删除） -->
+        <el-table-column label="操作" width="120">
+          <template #default="scope">
+            <el-button type="danger" text @click="handleDelete(scope.row.skuId)">删除</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- 购物车为空时的提示 -->
+      <el-empty v-if="!loading && cartList.length === 0" description="购物车空空如也，快去逛逛吧">
+        <el-button type="primary" @click="$router.push('/products')">去逛商品</el-button>
+      </el-empty>
+
+      <!-- 底部结算栏 -->
+      <div class="checkout-bar" v-if="cartList.length > 0">
+        <div class="total">
+          合计：<span class="price">¥ {{ totalAmount }}</span>
+        </div>
+        <el-button type="danger" size="large">去结算</el-button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import { getCartList, updateCartQuantity, removeCartItem } from '@/api/cart'
+
+// 状态变量
+const cartList = ref([])
+const loading = ref(false)
+
+// 自动计算所有商品的小计总和
+const totalAmount = computed(() => {
+  let sum = 0
+  cartList.value.forEach(item => {
+    sum += Number(item.totalPrice)
+  })
+  return sum.toFixed(2) // 保留两位小数
+})
+
+// 获取购物车列表
+async function fetchData() {
+  loading.value = true
+  try {
+    const res = await getCartList()
+    // res 直接就是后端返回的 List
+    cartList.value = res || []
+  } catch (e) {
+    // 错误已在 request.js 拦截器处理
+  } finally {
+    loading.value = false
+  }
+}
+
+// 修改数量 (el-input-number 触发)
+async function handleQuantityChange(skuId, newQuantity) {
+  try {
+    await updateCartQuantity(skuId, newQuantity)
+    ElMessage.success('数量已更新')
+    fetchData() // 重新拉取最新数据，保证总价实时刷新
+  } catch (e) {
+    // 如果失败，重新拉一次数据，把页面上的错误数字还原
+    fetchData()
+  }
+}
+
+// 删除商品
+async function handleDelete(skuId) {
+  try {
+    await removeCartItem(skuId)
+    ElMessage.success('删除成功')
+    fetchData() // 重新拉取数据刷新页面
+  } catch (e) {
+    //
+  }
+}
+
+// 页面加载时请求数据
+onMounted(() => {
+  fetchData()
+})
+</script>
+
+<style scoped>
+.cart-page {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+h2 {
+  margin-bottom: 20px;
+}
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+.product-img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.product-name {
+  font-weight: 500;
+  font-size: 15px;
+}
+.total-price {
+  color: #f56c6c;
+  font-weight: bold;
+}
+.checkout-bar {
+  margin-top: 30px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 30px;
+}
+.total {
+  font-size: 16px;
+}
+.total .price {
+  color: #f56c6c;
+  font-size: 24px;
+  font-weight: bold;
+}
+</style>
+
+================================================================================
+// FILE 55/59: frontend\src\views\Home.vue
+================================================================================
+<template>
+  <div class="home">
+    <h1>flash-mall</h1>
+    <p>W1 前端骨架跑通</p>
+    <div class="actions">
+      <el-button type="primary" @click="$router.push('/login')">去登录</el-button>
+      <el-button @click="$router.push('/register')">去注册</el-button>
+      <el-button type="warning" @click="$router.push('/cart')">购物车</el-button>
+    </div>
+  </div>
+</template>
+
+<script setup>
+</script>
+
+<style scoped>
+.home {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+}
+</style>
+
+================================================================================
+// FILE 56/59: frontend\src\views\Login.vue
+================================================================================
+<template>
+  <div class="auth-page">
+    <el-card class="auth-card">
+      <h2>登录</h2>
+      <el-form :model="form" label-width="0">
+        <el-form-item>
+          <el-input v-model="form.username" placeholder="用户名" @keyup.enter="passwordInputRef?.focus()" />
+        </el-form-item>
+        <el-form-item>
+          <el-input ref="passwordInputRef" v-model="form.password" type="password" placeholder="密码" show-password
+            @keyup.enter="handleLogin" />
+        </el-form-item>
+        <el-button type="primary" style="width: 100%" :loading="loading" @click="handleLogin">
+          登录
+        </el-button>
+      </el-form>
+      <div class="switch">
+        没有账号？<el-link type="primary" @click="$router.push('/register')">去注册</el-link>
+      </div>
+      <el-button type="success" @click="$router.push('/products')">浏览商品</el-button>
+
+    </el-card>
+  </div>
+</template>
+
+<script setup>
+import { reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import { login } from '@/api/user'
+import { useUserStore } from '@/stores/user'
+
+const router = useRouter()
+const userStore = useUserStore()
+
+const form = reactive({
+  username: '',
+  password: ''
+})
+
+// loading 防止用户连点导致重复请求
+const loading = ref(false)
+const passwordInputRef = ref(null)
+
+async function handleLogin() {
+  if (loading.value) return
+
+  if (!form.username || !form.password) {
+    ElMessage.warning('请输入用户名和密码')
+    return
+  }
+
+  loading.value = true
+  try {
+    // 调用登录接口，request.js 拦截器已经把 Result 解包成 data
+    // 所以 res 直接就是 { token, userId, username, nickname }
+    const res = await login({
+      username: form.username,
+      password: form.password
+    })
+
+    // 控制台打印 JWT，验收标准要求
+    console.log('JWT:', res.token)
+
+    // 存进 Pinia + localStorage
+    userStore.loginSuccess(res.token, {
+      userId: res.userId,
+      username: res.username,
+      nickname: res.nickname
+    })
+
+    ElMessage.success('登录成功')
+    router.push('/')
+  } catch (e) {
+    // 错误提示已经在 request.js 拦截器里弹过了，这里不用再弹
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+
+<style scoped>
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+}
+
+.auth-card {
+  width: 360px;
+  padding: 20px;
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.switch {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+</style>
+
+================================================================================
+// FILE 57/59: frontend\src\views\ProductList.vue
+================================================================================
+<template>
+  <div class="product-page">
+    <h2>商品列表</h2>
+
+    <!-- 商品卡片区域：加上 v-loading 后，请求时会自动转圈 -->
+    <div class="product-list" v-loading="loading">
+      <!-- v-for 循环遍历 productList，渲染一张张卡片 -->
+      <el-card 
+        v-for="item in productList" 
+        :key="item.spuId" 
+        class="product-card"
+        :body-style="{ padding: '0px' }"
+      >
+        <!-- 商品图片 -->
+        <img :src="item.mainImage" class="image" />
+        
+        <!-- 商品文字信息 -->
+        <div class="info">
+          <h3 class="name">{{ item.name }}</h3>
+          <p class="price">¥ {{ item.minPrice }} 起</p>
+        </div>
+      </el-card>
+    </div>
+
+    <!-- 如果没数据，显示空状态 -->
+    <el-empty v-if="!loading && productList.length === 0" description="暂无商品" />
+
+    <!-- 分页器 -->
+    <div class="pagination-box">
+      <el-pagination
+        background
+        layout="prev, pager, next"
+        :total="total"
+        :page-size="pageSize"
+        :current-page="pageNum"
+        @current-change="handlePageChange"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { getProductList } from '@/api/product'
+
+// 状态变量
+const productList = ref([]) // 存放后端返回的商品数组
+const loading = ref(false)  // 控制加载转圈
+const total = ref(0)        // 总商品数（分页用）
+const pageNum = ref(1)      // 当前第几页
+const pageSize = ref(6)     // 每页显示几个（我们总共 3 个商品，设小一点方便看效果）
+
+// 核心方法：去后端拿数据
+async function fetchData() {
+  loading.value = true
+  try {
+    // 调用 api，拦截器会自动解包 Result
+    const res = await getProductList(pageNum.value, pageSize.value)
+    productList.value = res.list // 把商品数组塞进去
+    total.value = res.total      // 把总数塞进去
+  } catch (e) {
+    // 错误拦截器已经处理了，这里留空
+  } finally {
+    loading.value = false
+  }
+}
+
+// 翻页时触发
+function handlePageChange(newPage) {
+  pageNum.value = newPage
+  fetchData() // 重新请求新一页的数据
+}
+
+// 页面刚加载时，自动去请求第 1 页
+onMounted(() => {
+  fetchData()
+})
+</script>
+
+<style scoped>
+.product-page {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 20px;
+  min-height: 300px; /* 防止加载时页面高度塌陷 */
+}
+.product-card {
+  width: 220px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.product-card:hover {
+  transform: translateY(-5px); /* 鼠标悬停时卡片微微上浮 */
+}
+.image {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+  display: block;
+}
+.info {
+  padding: 14px;
+}
+.name {
+  font-size: 16px;
+  margin: 0 0 10px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* 名字太长变成省略号 */
+}
+.price {
+  color: #f56c6c;
+  font-size: 18px;
+  font-weight: bold;
+  margin: 0;
+}
+.pagination-box {
+  margin-top: 40px;
+  display: flex;
+  justify-content: center;
+}
+</style>
+
+================================================================================
+// FILE 58/59: frontend\src\views\Register.vue
+================================================================================
+<template>
+  <div class="auth-page">
+    <el-card class="auth-card">
+      <h2>注册</h2>
+      <el-form :model="form" label-width="0">
+        <el-form-item>
+          <el-input v-model="form.username" placeholder="用户名" />
+        </el-form-item>
+        <el-form-item>
+          <el-input v-model="form.password" type="password" placeholder="密码" show-password />
+        </el-form-item>
+        <el-form-item>
+          <el-input v-model="form.email" placeholder="邮箱（可选）" />
+        </el-form-item>
+        <el-button type="primary" style="width: 100%" @click="handleRegister">注册</el-button>
+      </el-form>
+      <div class="switch">
+        已有账号？<el-link type="primary" @click="$router.push('/login')">去登录</el-link>
+      </div>
+    </el-card>
+  </div>
+</template>
+
+<script setup>
+import { reactive } from 'vue'
+import { ElMessage } from 'element-plus'
+
+const form = reactive({
+  username: '',
+  password: '',
+  email: ''
+})
+
+function handleRegister() {
+  ElMessage.info('注册功能待 W2 实现')
+}
+</script>
+
+<style scoped>
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f7fa;
+}
+.auth-card {
+  width: 360px;
+  padding: 20px;
+}
+h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.switch {
+  margin-top: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+}
+</style>
+
+================================================================================
+// FILE 59/59: frontend\vite.config.js
+================================================================================
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import { fileURLToPath, URL } from 'node:url'
+
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url))
+    }
+  },
+  server: {
+    port: 5173,
+    // 开发期用 Vite 代理解决跨域，后端不配 CORS（生产由 Nginx 反代）
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        // 后端接口路径不带 /api，代理时剥掉，方便将来网关层统一加前缀
+        rewrite: (path) => path.replace(/^\/api/, '')
+      }
+    }
+  }
+})

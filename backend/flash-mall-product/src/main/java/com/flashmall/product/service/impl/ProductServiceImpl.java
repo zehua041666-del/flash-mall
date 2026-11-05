@@ -48,6 +48,7 @@ public class ProductServiceImpl implements ProductService {
             BigDecimal minPrice = skus.stream().map(ProductSku::getPrice).min(BigDecimal::compareTo)
                     .orElse(BigDecimal.ZERO);
             item.setMinPrice(minPrice);
+            item.setSkuList(skus);
             return item;
         }).toList();
         return new PageResult<>(page.getTotal(), page.getCurrent(), page.getSize(), list);

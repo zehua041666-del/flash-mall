@@ -10,6 +10,7 @@ import com.flashmall.user.entity.User;
 import com.flashmall.user.mapper.UserMapper;
 import com.flashmall.user.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,9 +25,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public void register(RegisterRequest request) {
         // 先查用户名是否已存在
-        // MyBatis-Plus 逻辑删除：这里自动带 WHERE deleted = 0，已删的用户名可以复用
-        //这里是MP的实际应用 我现在不太清楚 所以 现在我先用我的理解来描述一下 这个的过程 首先就是 他是直接先看request.getusername
-        //然后 后面是
+        // 注意：MyBatis-Plus 逻辑删除会给查询自动追加 WHERE deleted = 0，
+        // 所以已逻辑删除的同名用户查不到；但唯一索引 uk_username 依然包含旧行，
+        // 直接 insert 会撞索引，因此插入处需要兜底处理重复键。
         Long count = userMapper.selectCount(
                 new LambdaQueryWrapper<User>().eq(User::getUsername, request.getUsername())
         );
@@ -41,7 +42,12 @@ public class UserServiceImpl implements UserService {
         user.setEmail(request.getEmail());
         user.setStatus(1);   // 默认正常
 
-        userMapper.insert(user);
+        try {
+            userMapper.insert(user);
+        } catch (DuplicateKeyException e) {
+            // 并发注册，或同名用户已被逻辑删除但唯一索引仍占用
+            throw new BizException(400, "用户名已存在");
+        }
     }
 
     @Override

@@ -4,25 +4,29 @@
 
     <!-- 商品卡片区域：加上 v-loading 后，请求时会自动转圈 -->
     <div class="product-list" v-loading="loading">
-      <!-- v-for 循环遍历 productList，渲染一张张卡片 -->
-      <el-card 
-        v-for="item in productList" 
-        :key="item.spuId" 
+      <el-card
+        v-for="item in productList"
+        :key="item.spuId"
         class="product-card"
         :body-style="{ padding: '0px' }"
       >
-        <!-- 商品图片 -->
         <img :src="item.mainImage" class="image" />
-        
-        <!-- 商品文字信息 -->
         <div class="info">
           <h3 class="name">{{ item.name }}</h3>
           <p class="price">¥ {{ item.minPrice }} 起</p>
+          <el-button
+            type="danger"
+            size="small"
+            class="add-cart-btn"
+            :disabled="!item.skuList || item.skuList.length === 0"
+            @click="openSkuDialog(item)"
+          >
+            加入购物车
+          </el-button>
         </div>
       </el-card>
     </div>
 
-    <!-- 如果没数据，显示空状态 -->
     <el-empty v-if="!loading && productList.length === 0" description="暂无商品" />
 
     <!-- 分页器 -->
@@ -36,42 +40,94 @@
         @current-change="handlePageChange"
       />
     </div>
+
+    <!-- 选规格弹窗 -->
+    <el-dialog v-model="dialogVisible" title="选择规格" width="440px">
+      <div v-if="currentSpu">
+        <div class="dialog-product-name">{{ currentSpu.name }}</div>
+        <el-radio-group v-model="selectedSkuId" class="sku-group">
+          <el-radio
+            v-for="sku in currentSpu.skuList"
+            :key="sku.id"
+            :value="sku.id"
+            border
+            class="sku-radio"
+          >
+            {{ sku.name }} —— ¥{{ sku.price }}
+          </el-radio>
+        </el-radio-group>
+      </div>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="adding" @click="handleAddToCart">确定加入</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import { getProductList } from '@/api/product'
+import { addToCart } from '@/api/cart'
 
-// 状态变量
-const productList = ref([]) // 存放后端返回的商品数组
-const loading = ref(false)  // 控制加载转圈
-const total = ref(0)        // 总商品数（分页用）
-const pageNum = ref(1)      // 当前第几页
-const pageSize = ref(6)     // 每页显示几个（我们总共 3 个商品，设小一点方便看效果）
+// 列表状态
+const productList = ref([])
+const loading = ref(false)
+const total = ref(0)
+const pageNum = ref(1)
+const pageSize = ref(6)
 
-// 核心方法：去后端拿数据
+// 选规格弹窗状态
+const dialogVisible = ref(false)
+const currentSpu = ref(null)
+const selectedSkuId = ref(null)
+const adding = ref(false)
+
 async function fetchData() {
   loading.value = true
   try {
-    // 调用 api，拦截器会自动解包 Result
     const res = await getProductList(pageNum.value, pageSize.value)
-    productList.value = res.list // 把商品数组塞进去
-    total.value = res.total      // 把总数塞进去
+    productList.value = res.list
+    total.value = res.total
   } catch (e) {
-    // 错误拦截器已经处理了，这里留空
+    // 拦截器已处理
   } finally {
     loading.value = false
   }
 }
 
-// 翻页时触发
 function handlePageChange(newPage) {
   pageNum.value = newPage
-  fetchData() // 重新请求新一页的数据
+  fetchData()
 }
 
-// 页面刚加载时，自动去请求第 1 页
+// 打开选规格弹窗
+function openSkuDialog(item) {
+  currentSpu.value = item
+  // 如果只有一个规格，直接默认选中，省一次点击
+  selectedSkuId.value = item.skuList.length === 1 ? item.skuList[0].id : null
+  dialogVisible.value = true
+}
+
+// 确认加入购物车
+async function handleAddToCart() {
+  if (!selectedSkuId.value) {
+    ElMessage.warning('请先选择规格')
+    return
+  }
+  adding.value = true
+  try {
+    await addToCart({ skuId: selectedSkuId.value, quantity: 1 })
+    ElMessage.success('加入购物车成功')
+    dialogVisible.value = false
+  } catch (e) {
+    // 未登录会走 401 → 拦截器跳登录；其他错误拦截器已弹
+  } finally {
+    adding.value = false
+  }
+}
+
 onMounted(() => {
   fetchData()
 })
@@ -88,15 +144,14 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 20px;
   margin-top: 20px;
-  min-height: 300px; /* 防止加载时页面高度塌陷 */
+  min-height: 300px;
 }
 .product-card {
   width: 220px;
-  cursor: pointer;
   transition: transform 0.2s;
 }
 .product-card:hover {
-  transform: translateY(-5px); /* 鼠标悬停时卡片微微上浮 */
+  transform: translateY(-5px);
 }
 .image {
   width: 100%;
@@ -112,17 +167,38 @@ onMounted(() => {
   margin: 0 0 10px 0;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis; /* 名字太长变成省略号 */
+  text-overflow: ellipsis;
 }
 .price {
   color: #f56c6c;
   font-size: 18px;
   font-weight: bold;
-  margin: 0;
+  margin: 0 0 12px 0;
+}
+.add-cart-btn {
+  width: 100%;
 }
 .pagination-box {
   margin-top: 40px;
   display: flex;
   justify-content: center;
+}
+
+/* 弹窗内样式 */
+.dialog-product-name {
+  font-weight: 500;
+  margin-bottom: 12px;
+  color: #333;
+}
+.sku-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sku-radio {
+  margin-right: 0 !important;
+  width: 100%;
+  height: auto;
+  padding: 10px 14px;
 }
 </style>

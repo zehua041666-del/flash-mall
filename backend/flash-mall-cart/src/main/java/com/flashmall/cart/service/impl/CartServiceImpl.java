@@ -4,6 +4,7 @@ import com.flashmall.cart.dto.AddCartRequest;
 import com.flashmall.cart.dto.CartItemResponse;
 import com.flashmall.cart.service.CartService;
 import com.flashmall.common.context.UserContext;
+import com.flashmall.common.exception.BizException;
 import com.flashmall.product.entity.ProductSku;
 import com.flashmall.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class CartServiceImpl implements CartService {
         Long userId = UserContext.getUserId();
         // 如果拦截器没拦住，userId 为空，抛异常
         if (userId == null) {
-            throw new RuntimeException("用户未登录");
+            throw new BizException(401, "用户未登录");
         }
         return CART_KEY_PREFIX + userId;
     }

@@ -5,6 +5,7 @@
     <div class="actions">
       <el-button type="primary" @click="$router.push('/login')">去登录</el-button>
       <el-button @click="$router.push('/register')">去注册</el-button>
+      <el-button type="warning" @click="$router.push('/cart')">购物车</el-button>
     </div>
   </div>
 </template>

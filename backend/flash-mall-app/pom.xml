@@ -30,6 +30,16 @@
             <artifactId>flash-mall-cart</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-order</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.flashmall</groupId>
+            <artifactId>flash-mall-inventory</artifactId>
+            <version>${project.version}</version>
+        </dependency>        
         <!-- Flyway 管数据库版本，启动时自动执行 db/migration 下的脚本 -->
         <dependency>
             <groupId>org.flywaydb</groupId>

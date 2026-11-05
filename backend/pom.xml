@@ -15,6 +15,8 @@
         <module>flash-mall-app</module>
         <module>flash-mall-cart</module>
         <module>flash-mall-product</module>
+        <module>flash-mall-order</module>
+        <module>flash-mall-inventory</module>
     </modules>
 
     <properties>
